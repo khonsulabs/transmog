@@ -55,6 +55,17 @@ impl User {
         self.serialize(&mut serializer)?;
         Ok(())
     }
+
+    fn deserialize_versioned(
+        version: u64,
+        data: &[u8],
+    ) -> Result<Self, dataversion::Error<SerializerErrors>> {
+        match Versions::try_from(version)? {
+            Versions::Legacy => bincode::deserialize(data).map_err(SerializerErrors::Bincode),
+            Versions::Current => pot::from_slice(data).map_err(SerializerErrors::Pot),
+        }
+        .map_err(dataversion::Error::Other)
+    }
 }
 
 fn main() -> anyhow::Result<()> {
@@ -67,27 +78,17 @@ fn main() -> anyhow::Result<()> {
     let originally_stored_data = bincode::serialize(&original_user)?;
 
     // If we pass the bincode-encoded file into
-    let deserialized_user = dataversion::decode(&originally_stored_data, deserialize_versioned)?;
+    let deserialized_user =
+        dataversion::decode(&originally_stored_data, User::deserialize_versioned)?;
     assert_eq!(original_user, deserialized_user);
 
     // And, when we write out our new version, it will be wrapped by
     // `dataversion` with the current version information.
     let new_data = deserialized_user.to_vec()?;
-    let deserialized_user = dataversion::decode(&new_data, deserialize_versioned)?;
+    let deserialized_user = dataversion::decode(&new_data, User::deserialize_versioned)?;
     assert_eq!(original_user, deserialized_user);
 
     Ok(())
-}
-
-fn deserialize_versioned(
-    version: u64,
-    data: &[u8],
-) -> Result<User, dataversion::Error<SerializerErrors>> {
-    match Versions::try_from(version)? {
-        Versions::Legacy => bincode::deserialize(data).map_err(SerializerErrors::Bincode),
-        Versions::Current => pot::from_slice(data).map_err(SerializerErrors::Pot),
-    }
-    .map_err(dataversion::Error::Other)
 }
 
 #[derive(thiserror::Error, Debug)]

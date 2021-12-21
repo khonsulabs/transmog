@@ -49,6 +49,20 @@ impl ConstVersioned for User {
     const VERSION: u64 = 1;
 }
 
+impl User {
+    fn deserialize_versioned(
+        version: u64,
+        data: &[u8],
+    ) -> Result<Self, dataversion::Error<pot::Error>> {
+        match version {
+            UserV0::VERSION => pot::from_slice::<UserV0>(data).map(Self::from),
+            Self::VERSION => pot::from_slice(data),
+            other => return Err(dataversion::Error::UnknownVersion(UnknownVersion(other))),
+        }
+        .map_err(dataversion::Error::Other)
+    }
+}
+
 impl From<UserV0> for User {
     fn from(legacy: UserV0) -> Self {
         Self {
@@ -69,22 +83,10 @@ fn main() -> anyhow::Result<()> {
     let originally_stored_data = original_user.to_vec()?;
 
     // Decode the user, getting the new version as part of the process.
-    let upgraded_user = dataversion::decode(&originally_stored_data, deserialize_versioned)?;
+    let upgraded_user = dataversion::decode(&originally_stored_data, User::deserialize_versioned)?;
     assert_eq!(User::from(original_user), upgraded_user);
 
     Ok(())
-}
-
-fn deserialize_versioned(
-    version: u64,
-    data: &[u8],
-) -> Result<User, dataversion::Error<pot::Error>> {
-    match version {
-        UserV0::VERSION => pot::from_slice::<UserV0>(data).map(User::from),
-        User::VERSION => pot::from_slice(data),
-        other => return Err(dataversion::Error::UnknownVersion(UnknownVersion(other))),
-    }
-    .map_err(dataversion::Error::Other)
 }
 
 #[test]

@@ -1,5 +1,5 @@
-//! Demonstrates using dataversion to migrate from unversioned data in one
-//! format to versioned data in another format.
+//! Demonstrates using dataversion to migrate between old versions of data
+//! structures to a current version.
 
 use std::fmt::Debug;
 

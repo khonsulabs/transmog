@@ -12,6 +12,9 @@ thiserror = "1"
 [dev-dependencies]
 serde = { version = "1", features = ["derive"] }
 bincode = "1"
-pot = "0.1.0-alpha.3"
+pot = { git = "https://github.com/khonsulabs/pot", branch = "main" }
 thiserror = "1"
 anyhow = "1"
+
+# [patch.crates-io]
+# pot = { path = "../pot/pot" }

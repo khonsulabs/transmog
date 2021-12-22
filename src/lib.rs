@@ -1,4 +1,7 @@
-use std::{fmt::Display, io::Write};
+use std::{
+    fmt::Display,
+    io::{BufRead, BufReader, Read, Write},
+};
 
 use ordered_varint::Variable;
 
@@ -24,7 +27,7 @@ impl Versioned for u64 {
     }
 }
 
-pub fn header(version: u64) -> Option<Vec<u8>> {
+fn header(version: u64) -> Option<Vec<u8>> {
     if version > 0 {
         let mut header = Vec::with_capacity(13);
         header.extend(MAGIC_CODE);
@@ -37,49 +40,54 @@ pub fn header(version: u64) -> Option<Vec<u8>> {
     }
 }
 
-pub fn footer() -> &'static [u8] {
-    MAGIC_CODE
-}
-
-pub fn encode<
-    E: From<std::io::Error>,
-    V: Versioned,
-    W: Write,
-    F: FnOnce(&mut W) -> Result<(), E>,
->(
-    versioned: V,
+pub fn write_header<V: Versioned, W: Write>(
+    versioned: &V,
     mut write: W,
-    callback: F,
-) -> Result<(), E> {
+) -> Result<(), std::io::Error> {
     if let Some(header) = header(versioned.version()) {
         write.write_all(&header)?;
-        callback(&mut write)?;
-        write.write_all(footer())?;
-        Ok(())
-    } else {
-        callback(&mut write)
     }
+    Ok(())
 }
 
-pub fn wrap<V: Versioned>(versioned: &V, data: &mut Vec<u8>) {
+pub fn wrap<V: Versioned>(versioned: &V, mut data: Vec<u8>) -> Vec<u8> {
     if let Some(header) = header(versioned.version()) {
-        data.reserve(header.len() + footer().len());
+        data.reserve(header.len());
         data.splice(0..0, header);
-        data.extend(footer());
+    }
+
+    data
+}
+
+pub fn decode<E: Display, T, R: Read, F: FnOnce(u64, BufReader<R>) -> Result<T, Error<E>>>(
+    data: R,
+    callback: F,
+) -> Result<T, Error<E>> {
+    let mut buffered = BufReader::with_capacity(13, data);
+    let mut peeked_header = buffered.fill_buf()?;
+
+    if peeked_header.starts_with(&MAGIC_CODE[0..4]) {
+        let header_start = peeked_header.as_ptr() as usize;
+        peeked_header = &peeked_header[4..];
+
+        let version = u64::decode_variable(&mut peeked_header)?;
+        let header_end = peeked_header.as_ptr() as usize;
+        buffered.consume(header_end - header_start);
+
+        callback(version, buffered)
+    } else {
+        callback(0, buffered)
     }
 }
 
-pub fn decode<E: Display, R, F: FnOnce(u64, &[u8]) -> Result<R, Error<E>>>(
-    data: &[u8],
-    callback: F,
-) -> Result<R, Error<E>> {
-    if data.starts_with(MAGIC_CODE) && data.ends_with(MAGIC_CODE) {
-        let (_magic_code, mut remaining) = data.split_at(MAGIC_CODE.len());
-        let version = u64::decode_variable(&mut remaining)?;
-        callback(version, &remaining[..remaining.len() - MAGIC_CODE.len()])
-    } else {
-        callback(0, data)
+pub fn unwrap_version(mut data: &[u8]) -> (u64, &[u8]) {
+    if data.starts_with(&MAGIC_CODE[0..4]) {
+        data = &data[4..];
+        if let Ok(version) = u64::decode_variable(&mut data) {
+            return (version, data);
+        }
     }
+    (0, data)
 }
 
 #[derive(thiserror::Error, Debug)]
@@ -103,28 +111,22 @@ fn basic_tests() {
     use std::convert::Infallible;
     let payload = b"hello world";
     let mut wrapped_with_0_version = Vec::new();
-    encode::<std::io::Error, _, _, _>(0_u64, &mut wrapped_with_0_version, |out| {
-        out.extend(payload);
-        Ok(())
-    })
-    .unwrap();
-    decode::<Infallible, _, _>(&wrapped_with_0_version, |version, contained| {
+    write_header(&0_u64, &mut wrapped_with_0_version).unwrap();
+    wrapped_with_0_version.extend(payload);
+    decode::<Infallible, _, _, _>(&wrapped_with_0_version[..], |version, mut contained| {
         assert_eq!(version, 0);
-        assert_eq!(contained, payload);
+        let mut bytes = Vec::new();
+        contained.read_to_end(&mut bytes).unwrap();
+        assert_eq!(bytes, payload);
         Ok(())
     })
     .unwrap();
 
-    let mut wrapped_with_1_version = Vec::new();
-    encode::<std::io::Error, _, _, _>(1_u64, &mut wrapped_with_1_version, |out| {
-        out.extend(payload);
-        Ok(())
-    })
-    .unwrap();
-    decode::<Infallible, _, _>(&wrapped_with_1_version, |version, contained| {
-        assert_eq!(version, 1);
-        assert_eq!(contained, payload);
-        Ok(())
-    })
-    .unwrap();
+    let bytes = wrap(&1_u64, payload.to_vec());
+    let (version, unwrapped_bytes) = unwrap_version(&bytes);
+    assert_eq!(version, 1);
+    assert_eq!(unwrapped_bytes, payload);
+
+    let unwrapped_version = unwrap_version(&payload[..]);
+    assert_eq!(unwrapped_version, (0, &payload[..]));
 }

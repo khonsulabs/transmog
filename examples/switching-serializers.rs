@@ -1,7 +1,10 @@
 //! Demonstrates using dataversion to migrate from unversioned data in one
 //! format to versioned data in another format.
 
-use std::{fmt::Debug, io::Write};
+use std::{
+    fmt::Debug,
+    io::{BufReader, Read},
+};
 
 use dataversion::Versioned;
 use serde::{Deserialize, Serialize};
@@ -40,29 +43,22 @@ impl User {
     /// Converts the user to bytes suitable for storage.
     pub fn to_vec(&self) -> Result<Vec<u8>, pot::Error> {
         let mut serialized = Vec::new();
-        // This example uses the more efficient Write-based API. See
-        // `versioned-serde.rs` for an example that uses the simpler `wrap()`
-        // API.
-        dataversion::encode(Versions::Current, &mut serialized, |write| {
-            self.serialize_into(write)
-        })?;
+        // This example uses Write to build the payload without extra data
+        // copying, but it's a little more verbose. To see a simpler API, refer
+        // to `wrap()` and see its usage in `versioned-serde.rs`.
+        dataversion::write_header(&Versions::Current, &mut serialized)?;
+        pot::to_writer(self, &mut serialized)?;
 
         Ok(serialized)
     }
 
-    fn serialize_into<W: Write + Debug>(&self, write: &mut W) -> Result<(), pot::Error> {
-        let mut serializer = pot::ser::Serializer::new(write)?;
-        self.serialize(&mut serializer)?;
-        Ok(())
-    }
-
-    fn deserialize_versioned(
+    fn deserialize_versioned<R: Read>(
         version: u64,
-        data: &[u8],
+        data: BufReader<R>,
     ) -> Result<Self, dataversion::Error<SerializerErrors>> {
         match Versions::try_from(version)? {
-            Versions::Legacy => bincode::deserialize(data).map_err(SerializerErrors::Bincode),
-            Versions::Current => pot::from_slice(data).map_err(SerializerErrors::Pot),
+            Versions::Legacy => bincode::deserialize_from(data).map_err(SerializerErrors::Bincode),
+            Versions::Current => pot::from_reader(data).map_err(SerializerErrors::Pot),
         }
         .map_err(dataversion::Error::Other)
     }
@@ -79,13 +75,13 @@ fn main() -> anyhow::Result<()> {
 
     // If we pass the bincode-encoded file into
     let deserialized_user =
-        dataversion::decode(&originally_stored_data, User::deserialize_versioned)?;
+        dataversion::decode(&originally_stored_data[..], User::deserialize_versioned)?;
     assert_eq!(original_user, deserialized_user);
 
     // And, when we write out our new version, it will be wrapped by
     // `dataversion` with the current version information.
     let new_data = deserialized_user.to_vec()?;
-    let deserialized_user = dataversion::decode(&new_data, User::deserialize_versioned)?;
+    let deserialized_user = dataversion::decode(&new_data[..], User::deserialize_versioned)?;
     assert_eq!(original_user, deserialized_user);
 
     Ok(())

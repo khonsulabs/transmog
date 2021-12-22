@@ -15,14 +15,11 @@ where
     T: Serialize + Sized + ConstVersioned,
 {
     fn to_vec(&self) -> Result<Vec<u8>, pot::Error> {
-        let mut serialized = pot::to_vec(self)?;
         // This example uses the simpler "wrap" API, which wraps an existing
         // Vec<u8> of data. It requires an extra copy of data, which can be
         // avoided when using the encode() API. For an example of that API, see
         // `switching-serializers.rs`.
-        dataversion::wrap(self, &mut serialized);
-
-        Ok(serialized)
+        Ok(dataversion::wrap(self, pot::to_vec(self)?))
     }
 }
 
@@ -50,10 +47,8 @@ impl ConstVersioned for User {
 }
 
 impl User {
-    fn deserialize_versioned(
-        version: u64,
-        data: &[u8],
-    ) -> Result<Self, dataversion::Error<pot::Error>> {
+    fn deserialize(data: &[u8]) -> Result<Self, dataversion::Error<pot::Error>> {
+        let (version, data) = dataversion::unwrap_version(data);
         match version {
             UserV0::VERSION => pot::from_slice::<UserV0>(data).map(Self::from),
             Self::VERSION => pot::from_slice(data),
@@ -83,7 +78,7 @@ fn main() -> anyhow::Result<()> {
     let originally_stored_data = original_user.to_vec()?;
 
     // Decode the user, getting the new version as part of the process.
-    let upgraded_user = dataversion::decode(&originally_stored_data, User::deserialize_versioned)?;
+    let upgraded_user = User::deserialize(&originally_stored_data).unwrap();
     assert_eq!(User::from(original_user), upgraded_user);
 
     Ok(())

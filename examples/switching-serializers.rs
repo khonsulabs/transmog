@@ -1,4 +1,4 @@
-//! Demonstrates using dataversion to migrate from unversioned data in one
+//! Demonstrates using transmog to migrate from unversioned data in one
 //! format to versioned data in another format.
 
 use std::{
@@ -6,8 +6,8 @@ use std::{
     io::{BufReader, Read},
 };
 
-use dataversion::Versioned;
 use serde::{Deserialize, Serialize};
+use transmog::version::{self, Versioned};
 
 #[derive(Copy, Clone, Debug)]
 enum Versions {
@@ -22,13 +22,13 @@ impl Versioned for Versions {
 }
 
 impl TryFrom<u64> for Versions {
-    type Error = dataversion::UnknownVersion;
+    type Error = version::UnknownVersion;
 
     fn try_from(value: u64) -> Result<Self, Self::Error> {
         match value {
             0 => Ok(Self::Legacy),
             1 => Ok(Self::Current),
-            other => Err(dataversion::UnknownVersion(other)),
+            other => Err(version::UnknownVersion(other)),
         }
     }
 }
@@ -46,7 +46,7 @@ impl User {
         // This example uses Write to build the payload without extra data
         // copying, but it's a little more verbose. To see a simpler API, refer
         // to `wrap()` and see its usage in `versioned-serde.rs`.
-        dataversion::write_header(&Versions::Current, &mut serialized)?;
+        version::write_header(&Versions::Current, &mut serialized)?;
         pot::to_writer(self, &mut serialized)?;
 
         Ok(serialized)
@@ -55,12 +55,12 @@ impl User {
     fn deserialize_versioned<R: Read>(
         version: u64,
         data: BufReader<R>,
-    ) -> Result<Self, dataversion::Error<SerializerErrors>> {
+    ) -> Result<Self, version::Error<SerializerErrors>> {
         match Versions::try_from(version)? {
             Versions::Legacy => bincode::deserialize_from(data).map_err(SerializerErrors::Bincode),
             Versions::Current => pot::from_reader(data).map_err(SerializerErrors::Pot),
         }
-        .map_err(dataversion::Error::Other)
+        .map_err(version::Error::Other)
     }
 }
 
@@ -75,13 +75,13 @@ fn main() -> anyhow::Result<()> {
 
     // If we pass the bincode-encoded file into
     let deserialized_user =
-        dataversion::decode(&originally_stored_data[..], User::deserialize_versioned)?;
+        version::decode(&originally_stored_data[..], User::deserialize_versioned)?;
     assert_eq!(original_user, deserialized_user);
 
     // And, when we write out our new version, it will be wrapped by
-    // `dataversion` with the current version information.
+    // `transmog` with the current version information.
     let new_data = deserialized_user.to_vec()?;
-    let deserialized_user = dataversion::decode(&new_data[..], User::deserialize_versioned)?;
+    let deserialized_user = version::decode(&new_data[..], User::deserialize_versioned)?;
     assert_eq!(original_user, deserialized_user);
 
     Ok(())

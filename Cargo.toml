@@ -1,20 +1,32 @@
 [package]
-name = "dataversion"
+name = "transmog"
 version = "0.1.0"
 edition = "2021"
 
 # See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
 
+[features]
+default = []
+strategy-bincode = ["bincode", "serde"]
+strategy-pot = ["pot", "serde"]
+
+[[example]]
+name = "playground"
+required-features = ["bincode", "pot"]
+
 [dependencies]
 ordered-varint = "0.1.0-dev.1"
 thiserror = "1"
+serde = { version = "1", features = ["derive"], optional = true }
+bincode = { version = "1", optional = true }
+pot = { version = "1.0.0-rc.1", optional = true }
 
 [dev-dependencies]
 serde = { version = "1", features = ["derive"] }
-bincode = "1"
-pot = { git = "https://github.com/khonsulabs/pot", branch = "main" }
 thiserror = "1"
 anyhow = "1"
+bincode = "1"
+pot = "1.0.0-rc.1"
 
 # [patch.crates-io]
 # pot = { path = "../pot/pot" }

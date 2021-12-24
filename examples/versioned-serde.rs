@@ -1,10 +1,10 @@
-//! Demonstrates using dataversion to migrate between old versions of data
+//! Demonstrates using transmog to migrate between old versions of data
 //! structures to a current version.
 
 use std::fmt::Debug;
 
-use dataversion::{ConstVersioned, UnknownVersion};
 use serde::{Deserialize, Serialize};
+use transmog::version::{self, ConstVersioned, UnknownVersion};
 
 trait Serializable: Serialize + Sized + ConstVersioned {
     fn to_vec(&self) -> Result<Vec<u8>, pot::Error>;
@@ -19,7 +19,7 @@ where
         // Vec<u8> of data. It requires an extra copy of data, which can be
         // avoided when using the encode() API. For an example of that API, see
         // `switching-serializers.rs`.
-        Ok(dataversion::wrap(self, pot::to_vec(self)?))
+        Ok(version::wrap(self, pot::to_vec(self)?))
     }
 }
 
@@ -47,14 +47,14 @@ impl ConstVersioned for User {
 }
 
 impl User {
-    fn deserialize(data: &[u8]) -> Result<Self, dataversion::Error<pot::Error>> {
-        let (version, data) = dataversion::unwrap_version(data);
+    fn deserialize(data: &[u8]) -> Result<Self, version::Error<pot::Error>> {
+        let (version, data) = version::unwrap_version(data);
         match version {
             UserV0::VERSION => pot::from_slice::<UserV0>(data).map(Self::from),
             Self::VERSION => pot::from_slice(data),
-            other => return Err(dataversion::Error::UnknownVersion(UnknownVersion(other))),
+            other => return Err(version::Error::UnknownVersion(UnknownVersion(other))),
         }
-        .map_err(dataversion::Error::Other)
+        .map_err(version::Error::Other)
     }
 }
 

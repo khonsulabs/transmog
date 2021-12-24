@@ -22,38 +22,39 @@
 mod reader;
 mod writer;
 
-use crate::format::Format;
-
-pub use self::{
-    reader::TransmogReader,
-    writer::{AsyncDestination, AsyncTransmogWriter, SyncDestination, TransmogWriterFor},
-};
-use futures_core::Stream;
-use futures_sink::Sink;
 use std::{
     fmt, io,
     ops::{Deref, DerefMut},
     pin::Pin,
     task::{Context, Poll},
 };
+
+use futures_core::Stream;
+use futures_sink::Sink;
 use tokio::io::{AsyncRead, ReadBuf};
+
+pub use self::{
+    reader::TransmogReader,
+    writer::{AsyncDestination, SyncDestination, TransmogWriter, TransmogWriterFor},
+};
+use crate::format::Format;
 
 /// A wrapper around an asynchronous stream that receives and sends bincode-encoded values.
 ///
-/// To use, provide a stream that implements both [`AsyncWrite`] and [`AsyncRead`], and then use
+/// To use, provide a stream that implements both [`AsyncWrite`](tokio::io::AsyncWrite) and [`AsyncRead`], and then use
 /// [`Sink`] to send values and [`Stream`] to receive them.
 ///
-/// Note that an `AsyncBincodeStream` must be of the type [`AsyncDestination`] in order to be
-/// compatible with an [`AsyncTransmogReader`] on the remote end (recall that it requires the
+/// Note that an `TransmogStream` must be of the type [`AsyncDestination`] in order to be
+/// compatible with an [`TransmogReader`] on the remote end (recall that it requires the
 /// serialized size prefixed to the serialized data). The default is [`SyncDestination`], but these
-/// can be easily toggled between using [`AsyncBincodeStream::for_async`].
+/// can be easily toggled between using [`TransmogStream::for_async`].
 #[derive(Debug)]
-pub struct TransmogStream<S, R, W, D, F> {
+pub struct TransmogStream<R, W, S, D, F> {
     stream: TransmogReader<InternalTransmogWriter<S, W, D, F>, R, F>,
 }
 
 #[doc(hidden)]
-pub struct InternalTransmogWriter<S, T, D, F>(AsyncTransmogWriter<S, T, D, F>);
+pub struct InternalTransmogWriter<S, T, D, F>(TransmogWriter<S, T, D, F>);
 
 impl<S: fmt::Debug, T, D, F> fmt::Debug for InternalTransmogWriter<S, T, D, F> {
     fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
@@ -61,7 +62,7 @@ impl<S: fmt::Debug, T, D, F> fmt::Debug for InternalTransmogWriter<S, T, D, F> {
     }
 }
 
-impl<S, R, W, D, F> TransmogStream<S, R, W, D, F> {
+impl<R, W, S, D, F> TransmogStream<R, W, S, D, F> {
     /// Gets a reference to the underlying stream.
     ///
     /// It is inadvisable to directly read from or write to the underlying stream.
@@ -76,7 +77,7 @@ impl<S, R, W, D, F> TransmogStream<S, R, W, D, F> {
         self.stream.get_mut().0.get_mut()
     }
 
-    /// Unwraps this `AsyncTransmogStream`, returning the underlying stream.
+    /// Unwraps this `TransmogStream`, returning the underlying stream.
     ///
     /// Note that any leftover serialized data that has not yet been sent, or received data that
     /// has not yet been deserialized, is lost.
@@ -85,7 +86,7 @@ impl<S, R, W, D, F> TransmogStream<S, R, W, D, F> {
     }
 }
 
-impl<S, R, W, F> TransmogStream<S, R, W, SyncDestination, F>
+impl<R, W, S, F> TransmogStream<R, W, S, SyncDestination, F>
 where
     F: Clone,
 {
@@ -93,7 +94,7 @@ where
     pub fn new(stream: S, format: F) -> Self {
         TransmogStream {
             stream: TransmogReader::new(
-                InternalTransmogWriter(AsyncTransmogWriter::new(stream, format.clone())),
+                InternalTransmogWriter(TransmogWriter::new(stream, format.clone())),
                 format,
             ),
         }
@@ -108,20 +109,18 @@ where
     }
 }
 
-impl<S, R, W, D, F> TransmogStream<S, R, W, D, F>
+impl<R, W, S, D, F> TransmogStream<R, W, S, D, F>
 where
     F: Clone,
 {
     /// Make this stream include the serialized data's size before each serialized value.
     ///
-    /// This is necessary for compatability with a remote [`AsyncTransmogReader`].
-    pub fn for_async(self) -> TransmogStream<S, R, W, AsyncDestination, F> {
+    /// This is necessary for compatability with a remote [`TransmogReader`].
+    pub fn for_async(self) -> TransmogStream<R, W, S, AsyncDestination, F> {
         let (stream, format) = self.into_inner();
         TransmogStream {
             stream: TransmogReader::new(
-                InternalTransmogWriter(
-                    AsyncTransmogWriter::new(stream, format.clone()).for_async(),
-                ),
+                InternalTransmogWriter(TransmogWriter::new(stream, format.clone()).for_async()),
                 format,
             ),
         }
@@ -130,19 +129,19 @@ where
     /// Make this stream only send Transmog-encoded values.
     ///
     /// This is necessary for compatability with stock Transmog receivers.
-    pub fn for_sync(self) -> TransmogStream<S, R, W, SyncDestination, F> {
+    pub fn for_sync(self) -> TransmogStream<R, W, S, SyncDestination, F> {
         let (stream, format) = self.into_inner();
         TransmogStream::new(stream, format)
     }
 }
 
-/// A reader of Transmog-encoded data from a [`tokio::net::TcpStream`].
+/// A reader of Transmog-encoded data from a [`TcpStream`](tokio::net::TcpStream).
 pub type TransmogTokioTcpReader<'a, R, F> = TransmogReader<tokio::net::tcp::ReadHalf<'a>, R, F>;
-/// A writer of Transmog-encoded data to a [`tokio::net::TcpStream`].
+/// A writer of Transmog-encoded data to a [`TcpStream`](tokio::net::TcpStream).
 pub type TransmogTokioTcpWriter<'a, W, D, F> =
-    AsyncTransmogWriter<tokio::net::tcp::WriteHalf<'a>, W, D, F>;
+    TransmogWriter<tokio::net::tcp::WriteHalf<'a>, W, D, F>;
 
-impl<R, W, D, F> TransmogStream<tokio::net::TcpStream, R, W, D, F>
+impl<R, W, D, F> TransmogStream<R, W, tokio::net::TcpStream, D, F>
 where
     F: Clone,
 {
@@ -173,8 +172,7 @@ where
         let mut reader = TransmogReader::new(r, format.clone());
         reader.buffer = rbuff;
         // And then the writer
-        let mut writer: AsyncTransmogWriter<_, _, D, F> =
-            AsyncTransmogWriter::new(w, format).make_for();
+        let mut writer: TransmogWriter<_, _, D, F> = TransmogWriter::new(w, format).make_for();
         writer.buffer = wbuff;
         writer.written = wsize;
         // All good!
@@ -196,7 +194,7 @@ where
 }
 
 impl<S, T, D, F> Deref for InternalTransmogWriter<S, T, D, F> {
-    type Target = AsyncTransmogWriter<S, T, D, F>;
+    type Target = TransmogWriter<S, T, D, F>;
     fn deref(&self) -> &Self::Target {
         &self.0
     }
@@ -207,7 +205,7 @@ impl<S, T, D, F> DerefMut for InternalTransmogWriter<S, T, D, F> {
     }
 }
 
-impl<S, R, W, D, F> Stream for TransmogStream<S, R, W, D, F>
+impl<R, W, S, D, F> Stream for TransmogStream<R, W, S, D, F>
 where
     S: Unpin,
     TransmogReader<InternalTransmogWriter<S, W, D, F>, R, F>: Stream<Item = Result<R, F::Error>>,
@@ -219,10 +217,10 @@ where
     }
 }
 
-impl<S, R, W, D, F> Sink<W> for TransmogStream<S, R, W, D, F>
+impl<R, W, S, D, F> Sink<W> for TransmogStream<R, W, S, D, F>
 where
     S: Unpin,
-    AsyncTransmogWriter<S, W, D, F>: Sink<W, Error = F::Error>,
+    TransmogWriter<S, W, D, F>: Sink<W, Error = F::Error>,
     F: Format<W>,
 {
     type Error = F::Error;
@@ -246,12 +244,12 @@ where
 
 #[cfg(test)]
 mod tests {
-    use crate::format::{Bincode, Pot};
-
-    use super::*;
     use futures::prelude::*;
     use serde::{de::DeserializeOwned, Serialize};
     use tokio::io::AsyncWriteExt;
+
+    use super::*;
+    use crate::format::{Bincode, Pot};
 
     async fn it_works<
         T: Serialize + DeserializeOwned + std::fmt::Debug + Clone + PartialEq + Send,
@@ -266,13 +264,13 @@ mod tests {
         let task_format = format.clone();
         tokio::spawn(async move {
             let (stream, _) = echo.accept().await.unwrap();
-            let mut stream = TransmogStream::<_, T, T, _, _>::new(stream, task_format).for_async();
+            let mut stream = TransmogStream::<T, T, _, _, _>::new(stream, task_format).for_async();
             let (r, w) = stream.tcp_split();
             r.forward(w).await.unwrap();
         });
 
         let client = tokio::net::TcpStream::connect(&addr).await.unwrap();
-        let mut client = TransmogStream::<_, T, T, _, _>::new(client, format).for_async();
+        let mut client = TransmogStream::<T, T, _, _, _>::new(client, format).for_async();
 
         for value in values {
             client.send(value.clone()).await.unwrap();
@@ -306,7 +304,7 @@ mod tests {
         tokio::spawn(async move {
             let (stream, _) = echo.accept().await.unwrap();
             let mut stream =
-                TransmogStream::<_, usize, usize, _, _>::new(stream, Bincode).for_async();
+                TransmogStream::<usize, usize, _, _, _>::new(stream, Bincode).for_async();
             let (r, w) = stream.tcp_split();
             r.forward(w).await.unwrap();
         });

@@ -9,11 +9,15 @@ edition = "2021"
 default = []
 strategy-bincode = ["bincode", "serde"]
 strategy-pot = ["pot", "serde"]
-async = ["tokio", "futures-core", "futures-sink"]
+stream = ["tokio", "futures-core", "futures-sink", "bytes"]
+
+[[example]]
+name = "stream"
+required-features = ["stream", "strategy-pot"]
 
 [[example]]
 name = "playground"
-required-features = ["bincode", "pot"]
+required-features = ["strategy-bincode", "strategy-pot"]
 
 [dependencies]
 ordered-varint = "0.1.0-dev.1"

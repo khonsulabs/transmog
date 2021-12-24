@@ -3,13 +3,13 @@ use std::{
     io::{Read, Write},
 };
 
-#[cfg(feature = "pot")]
+#[cfg(feature = "strategy-pot")]
 mod pot;
-#[cfg(feature = "pot")]
+#[cfg(feature = "strategy-pot")]
 pub use self::pot::*;
-#[cfg(feature = "bincode")]
+#[cfg(feature = "strategy-bincode")]
 mod bincode;
-#[cfg(feature = "bincode")]
+#[cfg(feature = "strategy-bincode")]
 pub use self::bincode::*;
 
 pub trait Format<T>: Send + Sync {

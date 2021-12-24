@@ -1,13 +1,14 @@
-use bytes::{Buf, BytesMut};
-use futures_core::{ready, Stream};
-use ordered_varint::Variable;
-use serde::Deserialize;
 use std::{
     io,
     marker::PhantomData,
     pin::Pin,
     task::{Context, Poll},
 };
+
+use bytes::{Buf, BytesMut};
+use futures_core::{ready, Stream};
+use ordered_varint::Variable;
+use serde::Deserialize;
 use tokio::io::{AsyncRead, ReadBuf};
 
 use crate::format::Format;
@@ -52,7 +53,7 @@ impl<R, T, F> TransmogReader<R, T, F> {
         &self.buffer[..]
     }
 
-    /// Unwraps this `AsyncTransmogReader`, returning the underlying reader.
+    /// Unwraps this `TransmogReader`, returning the underlying reader.
     ///
     /// Note that any leftover data in the internal buffer is lost.
     pub fn into_inner(self) -> R {

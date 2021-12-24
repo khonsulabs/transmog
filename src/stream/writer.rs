@@ -1,12 +1,13 @@
-use futures_core::ready;
-use futures_sink::Sink;
-use ordered_varint::Variable;
-use serde::Serialize;
 use std::{
     marker::PhantomData,
     pin::Pin,
     task::{Context, Poll},
 };
+
+use futures_core::ready;
+use futures_sink::Sink;
+use ordered_varint::Variable;
+use serde::Serialize;
 use tokio::io::AsyncWrite;
 
 use crate::format::Format;
@@ -16,12 +17,12 @@ use crate::format::Format;
 ///
 /// To use, provide a writer that implements [`AsyncWrite`], and then use [`Sink`] to send values.
 ///
-/// Note that an `AsyncTransmogWriter` must be of the type [`AsyncDestination`] in order to be
-/// compatible with an [`AsyncTransmogReader`] on the remote end (recall that it requires the
+/// Note that an `TransmogWriter` must be of the type [`AsyncDestination`] in order to be
+/// compatible with an [`TransmogReader`](super::TransmogReader) on the remote end (recall that it requires the
 /// serialized size prefixed to the serialized data). The default is [`SyncDestination`], but these
-/// can be easily toggled between using [`AsyncTransmogWriter::for_async`].
+/// can be easily toggled between using [`TransmogWriter::for_async`].
 #[derive(Debug)]
-pub struct AsyncTransmogWriter<W, T, D, F> {
+pub struct TransmogWriter<W, T, D, F> {
     format: F,
     writer: W,
     pub(crate) written: usize,
@@ -31,9 +32,9 @@ pub struct AsyncTransmogWriter<W, T, D, F> {
     dest: PhantomData<D>,
 }
 
-impl<W, T, D, F> Unpin for AsyncTransmogWriter<W, T, D, F> where W: Unpin {}
+impl<W, T, D, F> Unpin for TransmogWriter<W, T, D, F> where W: Unpin {}
 
-impl<W, T, D, F> AsyncTransmogWriter<W, T, D, F> {
+impl<W, T, D, F> TransmogWriter<W, T, D, F> {
     /// Gets a reference to the underlying format.
     ///
     /// It is inadvisable to directly write to the underlying writer.
@@ -55,7 +56,7 @@ impl<W, T, D, F> AsyncTransmogWriter<W, T, D, F> {
         &mut self.writer
     }
 
-    /// Unwraps this `AsyncBincodeWriter`, returning the underlying writer.
+    /// Unwraps this `TransmogWriter`, returning the underlying writer.
     ///
     /// Note that any leftover serialized data that has not yet been sent is lost.
     pub fn into_inner(self) -> (W, F) {
@@ -63,10 +64,10 @@ impl<W, T, D, F> AsyncTransmogWriter<W, T, D, F> {
     }
 }
 
-impl<W, T, F> AsyncTransmogWriter<W, T, SyncDestination, F> {
+impl<W, T, F> TransmogWriter<W, T, SyncDestination, F> {
     /// Returns a new instance that sends `format`-encoded data over `writer`.
     pub fn new(writer: W, format: F) -> Self {
-        AsyncTransmogWriter {
+        TransmogWriter {
             format,
             buffer: Vec::new(),
             scratch_buffer: Vec::new(),
@@ -87,18 +88,18 @@ impl<W, T, F> AsyncTransmogWriter<W, T, SyncDestination, F> {
     }
 }
 
-impl<W, T, F> AsyncTransmogWriter<W, T, SyncDestination, F> {
+impl<W, T, F> TransmogWriter<W, T, SyncDestination, F> {
     /// Make this writer include the serialized data's size before each serialized value.
     ///
-    /// This is necessary for compatability with [`AsyncTransmogReader`].
-    pub fn for_async(self) -> AsyncTransmogWriter<W, T, AsyncDestination, F> {
+    /// This is necessary for compatability with [`TransmogReader`](super::TransmogReader).
+    pub fn for_async(self) -> TransmogWriter<W, T, AsyncDestination, F> {
         self.make_for()
     }
 }
 
-impl<W, T, D, F> AsyncTransmogWriter<W, T, D, F> {
-    pub(crate) fn make_for<D2>(self) -> AsyncTransmogWriter<W, T, D2, F> {
-        AsyncTransmogWriter {
+impl<W, T, D, F> TransmogWriter<W, T, D, F> {
+    pub(crate) fn make_for<D2>(self) -> TransmogWriter<W, T, D2, F> {
+        TransmogWriter {
             format: self.format,
             buffer: self.buffer,
             writer: self.writer,
@@ -110,16 +111,16 @@ impl<W, T, D, F> AsyncTransmogWriter<W, T, D, F> {
     }
 }
 
-impl<W, T, F> AsyncTransmogWriter<W, T, AsyncDestination, F> {
+impl<W, T, F> TransmogWriter<W, T, AsyncDestination, F> {
     /// Make this writer only send Transmog-encoded values.
     ///
     /// This is necessary for compatability with stock Transmog receivers.
-    pub fn for_sync(self) -> AsyncTransmogWriter<W, T, SyncDestination, F> {
+    pub fn for_sync(self) -> TransmogWriter<W, T, SyncDestination, F> {
         self.make_for()
     }
 }
 
-/// A marker that indicates that the wrapping type is compatible with `AsyncTransmogReader`.
+/// A marker that indicates that the wrapping type is compatible with `TransmogReader`.
 #[derive(Debug)]
 pub struct AsyncDestination;
 
@@ -135,7 +136,7 @@ where
     fn append(&mut self, item: &T) -> Result<(), F::Error>;
 }
 
-impl<W, T, F> TransmogWriterFor<T, F> for AsyncTransmogWriter<W, T, AsyncDestination, F>
+impl<W, T, F> TransmogWriterFor<T, F> for TransmogWriter<W, T, AsyncDestination, F>
 where
     T: Serialize,
     F: Format<T>,
@@ -156,7 +157,7 @@ where
     }
 }
 
-impl<W, T, F> TransmogWriterFor<T, F> for AsyncTransmogWriter<W, T, SyncDestination, F>
+impl<W, T, F> TransmogWriterFor<T, F> for TransmogWriter<W, T, SyncDestination, F>
 where
     T: Serialize,
     F: Format<T>,
@@ -166,7 +167,7 @@ where
     }
 }
 
-impl<W, T, D, F> Sink<T> for AsyncTransmogWriter<W, T, D, F>
+impl<W, T, D, F> Sink<T> for TransmogWriter<W, T, D, F>
 where
     T: Serialize,
     F: Format<T>,

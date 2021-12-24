@@ -1,0 +1,212 @@
+use futures_core::ready;
+use futures_sink::Sink;
+use ordered_varint::Variable;
+use serde::Serialize;
+use std::{
+    marker::PhantomData,
+    pin::Pin,
+    task::{Context, Poll},
+};
+use tokio::io::AsyncWrite;
+
+use crate::format::Format;
+
+/// A wrapper around an asynchronous sink that accepts, serializes, and sends Transmog-encoded
+/// values.
+///
+/// To use, provide a writer that implements [`AsyncWrite`], and then use [`Sink`] to send values.
+///
+/// Note that an `AsyncTransmogWriter` must be of the type [`AsyncDestination`] in order to be
+/// compatible with an [`AsyncTransmogReader`] on the remote end (recall that it requires the
+/// serialized size prefixed to the serialized data). The default is [`SyncDestination`], but these
+/// can be easily toggled between using [`AsyncTransmogWriter::for_async`].
+#[derive(Debug)]
+pub struct AsyncTransmogWriter<W, T, D, F> {
+    format: F,
+    writer: W,
+    pub(crate) written: usize,
+    pub(crate) buffer: Vec<u8>,
+    scratch_buffer: Vec<u8>,
+    from: PhantomData<T>,
+    dest: PhantomData<D>,
+}
+
+impl<W, T, D, F> Unpin for AsyncTransmogWriter<W, T, D, F> where W: Unpin {}
+
+impl<W, T, D, F> AsyncTransmogWriter<W, T, D, F> {
+    /// Gets a reference to the underlying format.
+    ///
+    /// It is inadvisable to directly write to the underlying writer.
+    pub fn format(&self) -> &F {
+        &self.format
+    }
+
+    /// Gets a reference to the underlying writer.
+    ///
+    /// It is inadvisable to directly write to the underlying writer.
+    pub fn get_ref(&self) -> &W {
+        &self.writer
+    }
+
+    /// Gets a mutable reference to the underlying writer.
+    ///
+    /// It is inadvisable to directly write to the underlying writer.
+    pub fn get_mut(&mut self) -> &mut W {
+        &mut self.writer
+    }
+
+    /// Unwraps this `AsyncBincodeWriter`, returning the underlying writer.
+    ///
+    /// Note that any leftover serialized data that has not yet been sent is lost.
+    pub fn into_inner(self) -> (W, F) {
+        (self.writer, self.format)
+    }
+}
+
+impl<W, T, F> AsyncTransmogWriter<W, T, SyncDestination, F> {
+    /// Returns a new instance that sends `format`-encoded data over `writer`.
+    pub fn new(writer: W, format: F) -> Self {
+        AsyncTransmogWriter {
+            format,
+            buffer: Vec::new(),
+            scratch_buffer: Vec::new(),
+            writer,
+            written: 0,
+            from: PhantomData,
+            dest: PhantomData,
+        }
+    }
+
+    /// Returns a new instance that sends `format`-encoded data over
+    /// `W::defcfault()`.
+    pub fn default_for(format: F) -> Self
+    where
+        W: Default,
+    {
+        Self::new(W::default(), format)
+    }
+}
+
+impl<W, T, F> AsyncTransmogWriter<W, T, SyncDestination, F> {
+    /// Make this writer include the serialized data's size before each serialized value.
+    ///
+    /// This is necessary for compatability with [`AsyncTransmogReader`].
+    pub fn for_async(self) -> AsyncTransmogWriter<W, T, AsyncDestination, F> {
+        self.make_for()
+    }
+}
+
+impl<W, T, D, F> AsyncTransmogWriter<W, T, D, F> {
+    pub(crate) fn make_for<D2>(self) -> AsyncTransmogWriter<W, T, D2, F> {
+        AsyncTransmogWriter {
+            format: self.format,
+            buffer: self.buffer,
+            writer: self.writer,
+            written: self.written,
+            from: self.from,
+            scratch_buffer: self.scratch_buffer,
+            dest: PhantomData,
+        }
+    }
+}
+
+impl<W, T, F> AsyncTransmogWriter<W, T, AsyncDestination, F> {
+    /// Make this writer only send Transmog-encoded values.
+    ///
+    /// This is necessary for compatability with stock Transmog receivers.
+    pub fn for_sync(self) -> AsyncTransmogWriter<W, T, SyncDestination, F> {
+        self.make_for()
+    }
+}
+
+/// A marker that indicates that the wrapping type is compatible with `AsyncTransmogReader`.
+#[derive(Debug)]
+pub struct AsyncDestination;
+
+/// A marker that indicates that the wrapping type is compatible with stock Transmog receivers.
+#[derive(Debug)]
+pub struct SyncDestination;
+
+#[doc(hidden)]
+pub trait TransmogWriterFor<T, F>
+where
+    F: Format<T>,
+{
+    fn append(&mut self, item: &T) -> Result<(), F::Error>;
+}
+
+impl<W, T, F> TransmogWriterFor<T, F> for AsyncTransmogWriter<W, T, AsyncDestination, F>
+where
+    T: Serialize,
+    F: Format<T>,
+{
+    fn append(&mut self, item: &T) -> Result<(), F::Error> {
+        self.scratch_buffer.truncate(0);
+
+        // TODO add a path for a format to estimate its size and use
+        // serialize_into on the target buffer instead of using an extra copy.
+        self.format.serialize_into(item, &mut self.scratch_buffer)?;
+
+        // TODO remove unwrap
+        let size = u64::try_from(self.scratch_buffer.len()).unwrap();
+        // TODO remove unwrap
+        size.encode_variable(&mut self.buffer).unwrap();
+        self.buffer.append(&mut self.scratch_buffer);
+        Ok(())
+    }
+}
+
+impl<W, T, F> TransmogWriterFor<T, F> for AsyncTransmogWriter<W, T, SyncDestination, F>
+where
+    T: Serialize,
+    F: Format<T>,
+{
+    fn append(&mut self, item: &T) -> Result<(), F::Error> {
+        self.format.serialize_into(item, &mut self.buffer)
+    }
+}
+
+impl<W, T, D, F> Sink<T> for AsyncTransmogWriter<W, T, D, F>
+where
+    T: Serialize,
+    F: Format<T>,
+    W: AsyncWrite + Unpin,
+    Self: TransmogWriterFor<T, F>,
+{
+    type Error = F::Error;
+
+    fn poll_ready(self: Pin<&mut Self>, _: &mut Context) -> Poll<Result<(), Self::Error>> {
+        Poll::Ready(Ok(()))
+    }
+
+    fn start_send(mut self: Pin<&mut Self>, item: T) -> Result<(), Self::Error> {
+        self.append(&item)?;
+        Ok(())
+    }
+
+    fn poll_flush(self: Pin<&mut Self>, cx: &mut Context) -> Poll<Result<(), Self::Error>> {
+        // allow us to borrow fields separately
+        let this = self.get_mut();
+
+        // write stuff out if we need to
+        while this.written != this.buffer.len() {
+            let n =
+                ready!(Pin::new(&mut this.writer).poll_write(cx, &this.buffer[this.written..]))?;
+            this.written += n;
+        }
+
+        // we have to flush before we're really done
+        this.buffer.clear();
+        this.written = 0;
+        Pin::new(&mut this.writer)
+            .poll_flush(cx)
+            .map_err(<F::Error as From<std::io::Error>>::from)
+    }
+
+    fn poll_close(mut self: Pin<&mut Self>, cx: &mut Context) -> Poll<Result<(), Self::Error>> {
+        ready!(self.as_mut().poll_flush(cx))?;
+        Pin::new(&mut self.writer)
+            .poll_shutdown(cx)
+            .map_err(<F::Error as From<std::io::Error>>::from)
+    }
+}

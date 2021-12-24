@@ -17,21 +17,17 @@
 
 use std::{
     fmt::Debug,
-    io::{BufReader, Read, Write},
+    io::{Read, Write},
 };
 
 use serde::{Deserialize, Serialize};
 use transmog::{
     format::{Bincode, Format, Pot},
-    version::{UnknownVersion, Versioned},
+    version::UnknownVersion,
 };
 
 #[derive(Debug)]
-enum Versions {
-    V0(UserV0),
-    V1(UserV0),
-    Current(User),
-}
+struct Versions;
 
 /// Our first version of the User structure.
 #[derive(Serialize, Deserialize, Default, Eq, PartialEq, Debug)]
@@ -54,45 +50,45 @@ impl From<UserV0> for User {
 // A list of these pairs = a sequence of structure versions
 // To deserialize
 
-impl Versioned for Versions {
-    fn version(&self) -> u64 {
-        match self {
-            Versions::V0(_) => 0,
-            Versions::V1(_) => 1,
-            Versions::Current(_) => 2,
-        }
-    }
-}
+// impl Versioned for Versions {
+//     fn version(&self) -> u64 {
+//         match self {
+//             Versions::V0(_) => 0,
+//             Versions::V1(_) => 1,
+//             Versions::Current(_) => 2,
+//         }
+//     }
+// }
 
 impl Format<User> for Versions {
     type Error = transmog::version::Error<SerializerErrors>;
 
-    fn serialize(value: &User) -> Result<Vec<u8>, Self::Error> {
-        Pot::serialize(value)
+    fn serialize(&self, value: &User) -> Result<Vec<u8>, Self::Error> {
+        Pot.serialize(value)
             .map(|data| transmog::version::wrap(&2, data))
             .map_err(SerializerErrors::from)
             .map_err(transmog::version::Error::Other)
     }
 
-    fn serialize_into<W: Write>(value: &User, mut writer: W) -> Result<(), Self::Error> {
+    fn serialize_into<W: Write>(&self, value: &User, mut writer: W) -> Result<(), Self::Error> {
         transmog::version::write_header(&2, &mut writer)?;
-        Pot::serialize_into(value, writer)
+        Pot.serialize_into(value, writer)
             .map_err(SerializerErrors::from)
             .map_err(transmog::version::Error::Other)
     }
 
-    fn deserialize(data: &[u8]) -> Result<User, Self::Error> {
+    fn deserialize(&self, data: &[u8]) -> Result<User, Self::Error> {
         let (version, data) = transmog::version::unwrap_version(data);
         match version {
-            0 => <Bincode as Format<UserV0>>::deserialize(data)
+            0 => <Bincode as Format<UserV0>>::deserialize(&Bincode, data)
                 .map(User::from)
                 .map_err(SerializerErrors::from)
                 .map_err(transmog::version::Error::Other),
-            1 => <Pot as Format<UserV0>>::deserialize(data)
+            1 => <Pot as Format<UserV0>>::deserialize(&Pot, data)
                 .map(User::from)
                 .map_err(SerializerErrors::from)
                 .map_err(transmog::version::Error::Other),
-            2 => <Pot as Format<User>>::deserialize(data)
+            2 => <Pot as Format<User>>::deserialize(&Pot, data)
                 .map(User::from)
                 .map_err(SerializerErrors::from)
                 .map_err(transmog::version::Error::Other),
@@ -102,17 +98,17 @@ impl Format<User> for Versions {
         }
     }
 
-    fn deserialize_from<R: Read>(reader: R) -> Result<User, Self::Error> {
+    fn deserialize_from<R: Read>(&self, reader: R) -> Result<User, Self::Error> {
         transmog::version::decode(reader, |version, reader| match version {
-            0 => <Bincode as Format<UserV0>>::deserialize_from(reader)
+            0 => <Bincode as Format<UserV0>>::deserialize_from(&Bincode, reader)
                 .map(User::from)
                 .map_err(SerializerErrors::from)
                 .map_err(transmog::version::Error::Other),
-            1 => <Pot as Format<UserV0>>::deserialize_from(reader)
+            1 => <Pot as Format<UserV0>>::deserialize_from(&Pot, reader)
                 .map(User::from)
                 .map_err(SerializerErrors::from)
                 .map_err(transmog::version::Error::Other),
-            2 => <Pot as Format<User>>::deserialize_from(reader)
+            2 => <Pot as Format<User>>::deserialize_from(&Pot, reader)
                 .map(User::from)
                 .map_err(SerializerErrors::from)
                 .map_err(transmog::version::Error::Other),
@@ -144,12 +140,12 @@ fn main() -> anyhow::Result<()> {
     // Then we adopted transmog, still using the V0 structure, but using transmog to wrap it
     let v1_data = transmog::version::wrap(&1, pot::to_vec(&original_user)?);
     // And then we updated the structure to a new version
-    let current_data = Versions::serialize(&current_user)?;
+    let current_data = Versions.serialize(&current_user)?;
 
     // If we pass the bincode-encoded file into
-    assert_eq!(current_user, Versions::deserialize(&v0_data)?);
-    assert_eq!(current_user, Versions::deserialize(&v1_data)?);
-    assert_eq!(current_user, Versions::deserialize(&current_data)?);
+    assert_eq!(current_user, Versions.deserialize(&v0_data)?);
+    assert_eq!(current_user, Versions.deserialize(&v1_data)?);
+    assert_eq!(current_user, Versions.deserialize(&current_data)?);
 
     Ok(())
 }

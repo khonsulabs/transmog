@@ -17,13 +17,14 @@
 //! [`async-bincode`](https://github.com/jonhoo/async-bincode) to generically
 //! support different serialization formats, as well as this crates own
 //! versioning features.
-#![deny(missing_docs)]
+#![warn(missing_docs)]
 
 mod reader;
 mod writer;
 
 use std::{
     fmt, io,
+    marker::PhantomData,
     ops::{Deref, DerefMut},
     pin::Pin,
     task::{Context, Poll},
@@ -31,6 +32,7 @@ use std::{
 
 use futures_core::Stream;
 use futures_sink::Sink;
+use serde::{Deserialize, Serialize};
 use tokio::io::{AsyncRead, ReadBuf};
 
 pub use self::{
@@ -38,6 +40,83 @@ pub use self::{
     writer::{AsyncDestination, SyncDestination, TransmogWriter, TransmogWriterFor},
 };
 use crate::format::Format;
+
+/// Builder helper to specify types without the need of turbofishing.
+pub struct Builder<TReads, TWrites, TStream, TFormat> {
+    stream: TStream,
+    format: TFormat,
+    datatypes: PhantomData<(TReads, TWrites)>,
+}
+
+impl<TStream, TFormat> Builder<(), (), TStream, TFormat> {
+    /// Returns a new stream builder for `stream` and `format`.
+    pub fn new(stream: TStream, format: TFormat) -> Self {
+        Self {
+            stream,
+            format,
+            datatypes: PhantomData,
+        }
+    }
+}
+
+impl<TStream, TFormat> Builder<(), (), TStream, TFormat> {
+    /// Sets `T` as the type for both sending and receiving.
+    pub fn sends_and_receives<T: Serialize + for<'de> Deserialize<'de>>(
+        self,
+    ) -> Builder<T, T, TStream, TFormat> {
+        Builder {
+            stream: self.stream,
+            format: self.format,
+            datatypes: PhantomData,
+        }
+    }
+}
+
+impl<TReads, TStream, TFormat> Builder<TReads, (), TStream, TFormat> {
+    /// Sets `T` as the type of data that is written to this stream.
+    pub fn sends<T: Serialize + for<'de> Deserialize<'de>>(
+        self,
+    ) -> Builder<TReads, T, TStream, TFormat> {
+        Builder {
+            stream: self.stream,
+            format: self.format,
+            datatypes: PhantomData,
+        }
+    }
+}
+
+impl<TWrites, TStream, TFormat> Builder<(), TWrites, TStream, TFormat> {
+    /// Sets `T` as the type of data that is read from this stream.
+    pub fn receives<T: Serialize + for<'de> Deserialize<'de>>(
+        self,
+    ) -> Builder<T, TWrites, TStream, TFormat> {
+        Builder {
+            stream: self.stream,
+            format: self.format,
+            datatypes: PhantomData,
+        }
+    }
+}
+
+impl<TReads, TWrites, TStream, TFormat> Builder<TReads, TWrites, TStream, TFormat>
+where
+    TFormat: Clone,
+{
+    /// Build this stream to include the serialized data's size before each
+    /// serialized value.
+    ///
+    /// This is necessary for compatability with a remote [`TransmogReader`].
+    pub fn for_async(self) -> TransmogStream<TReads, TWrites, TStream, AsyncDestination, TFormat> {
+        TransmogStream::new(self.stream, self.format).for_async()
+    }
+
+    /// Build this stream only send Transmog-encoded values.
+    ///
+    /// This is necessary for compatability with stock Transmog receivers.
+    pub fn for_sync(self) -> TransmogStream<TReads, TWrites, TStream, SyncDestination, TFormat> {
+        TransmogStream::new(self.stream, self.format)
+    }
+}
 
 /// A wrapper around an asynchronous stream that receives and sends bincode-encoded values.
 ///
@@ -49,31 +128,41 @@ use crate::format::Format;
 /// serialized size prefixed to the serialized data). The default is [`SyncDestination`], but these
 /// can be easily toggled between using [`TransmogStream::for_async`].
 #[derive(Debug)]
-pub struct TransmogStream<R, W, S, D, F> {
-    stream: TransmogReader<InternalTransmogWriter<S, W, D, F>, R, F>,
+pub struct TransmogStream<TReads, TWrites, TStream, TDestination, TFormat> {
+    stream: TransmogReader<
+        InternalTransmogWriter<TStream, TWrites, TDestination, TFormat>,
+        TReads,
+        TFormat,
+    >,
 }
 
 #[doc(hidden)]
-pub struct InternalTransmogWriter<S, T, D, F>(TransmogWriter<S, T, D, F>);
+pub struct InternalTransmogWriter<TStream, T, TDestination, TFormat>(
+    TransmogWriter<TStream, T, TDestination, TFormat>,
+);
 
-impl<S: fmt::Debug, T, D, F> fmt::Debug for InternalTransmogWriter<S, T, D, F> {
+impl<TStream: fmt::Debug, T, TDestination, TFormat> fmt::Debug
+    for InternalTransmogWriter<TStream, T, TDestination, TFormat>
+{
     fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
         self.get_ref().fmt(f)
     }
 }
 
-impl<R, W, S, D, F> TransmogStream<R, W, S, D, F> {
+impl<TReads, TWrites, TStream, TDestination, TFormat>
+    TransmogStream<TReads, TWrites, TStream, TDestination, TFormat>
+{
     /// Gets a reference to the underlying stream.
     ///
     /// It is inadvisable to directly read from or write to the underlying stream.
-    pub fn get_ref(&self) -> &S {
+    pub fn get_ref(&self) -> &TStream {
         self.stream.get_ref().0.get_ref()
     }
 
     /// Gets a mutable reference to the underlying stream.
     ///
     /// It is inadvisable to directly read from or write to the underlying stream.
-    pub fn get_mut(&mut self) -> &mut S {
+    pub fn get_mut(&mut self) -> &mut TStream {
         self.stream.get_mut().0.get_mut()
     }
 
@@ -81,17 +170,25 @@ impl<R, W, S, D, F> TransmogStream<R, W, S, D, F> {
     ///
     /// Note that any leftover serialized data that has not yet been sent, or received data that
     /// has not yet been deserialized, is lost.
-    pub fn into_inner(self) -> (S, F) {
+    pub fn into_inner(self) -> (TStream, TFormat) {
         self.stream.into_inner().0.into_inner()
     }
 }
 
-impl<R, W, S, F> TransmogStream<R, W, S, SyncDestination, F>
+impl<TStream, TFormat> TransmogStream<(), (), TStream, SyncDestination, TFormat> {
+    /// Creates a new instance that sends `format`-encoded payloads over `stream`.
+    pub fn build(stream: TStream, format: TFormat) -> Builder<(), (), TStream, TFormat> {
+        Builder::new(stream, format)
+    }
+}
+
+impl<TReads, TWrites, TStream, TFormat>
+    TransmogStream<TReads, TWrites, TStream, SyncDestination, TFormat>
 where
-    F: Clone,
+    TFormat: Clone,
 {
     /// Creates a new instance that sends `format`-encoded payloads over `stream`.
-    pub fn new(stream: S, format: F) -> Self {
+    pub fn new(stream: TStream, format: TFormat) -> Self {
         TransmogStream {
             stream: TransmogReader::new(
                 InternalTransmogWriter(TransmogWriter::new(stream, format.clone())),
@@ -100,23 +197,25 @@ where
         }
     }
 
-    /// Creates a new instance that sends `format`-encoded payloads over the default stream for `S`.
-    pub fn default_for(format: F) -> Self
+    /// Creates a new instance that sends `format`-encoded payloads over the
+    /// default stream for `TStream`.
+    pub fn default_for(format: TFormat) -> Self
     where
-        S: Default,
+        TStream: Default,
     {
-        Self::new(S::default(), format)
+        Self::new(TStream::default(), format)
     }
 }
 
-impl<R, W, S, D, F> TransmogStream<R, W, S, D, F>
+impl<TReads, TWrites, TStream, TDestination, TFormat>
+    TransmogStream<TReads, TWrites, TStream, TDestination, TFormat>
 where
-    F: Clone,
+    TFormat: Clone,
 {
     /// Make this stream include the serialized data's size before each serialized value.
     ///
     /// This is necessary for compatability with a remote [`TransmogReader`].
-    pub fn for_async(self) -> TransmogStream<R, W, S, AsyncDestination, F> {
+    pub fn for_async(self) -> TransmogStream<TReads, TWrites, TStream, AsyncDestination, TFormat> {
         let (stream, format) = self.into_inner();
         TransmogStream {
             stream: TransmogReader::new(
@@ -129,21 +228,23 @@ where
     /// Make this stream only send Transmog-encoded values.
     ///
     /// This is necessary for compatability with stock Transmog receivers.
-    pub fn for_sync(self) -> TransmogStream<R, W, S, SyncDestination, F> {
+    pub fn for_sync(self) -> TransmogStream<TReads, TWrites, TStream, SyncDestination, TFormat> {
         let (stream, format) = self.into_inner();
         TransmogStream::new(stream, format)
     }
 }
 
 /// A reader of Transmog-encoded data from a [`TcpStream`](tokio::net::TcpStream).
-pub type TransmogTokioTcpReader<'a, R, F> = TransmogReader<tokio::net::tcp::ReadHalf<'a>, R, F>;
+pub type TransmogTokioTcpReader<'a, TReads, TFormat> =
+    TransmogReader<tokio::net::tcp::ReadHalf<'a>, TReads, TFormat>;
 /// A writer of Transmog-encoded data to a [`TcpStream`](tokio::net::TcpStream).
-pub type TransmogTokioTcpWriter<'a, W, D, F> =
-    TransmogWriter<tokio::net::tcp::WriteHalf<'a>, W, D, F>;
+pub type TransmogTokioTcpWriter<'a, TWrites, TDestination, TFormat> =
+    TransmogWriter<tokio::net::tcp::WriteHalf<'a>, TWrites, TDestination, TFormat>;
 
-impl<R, W, D, F> TransmogStream<R, W, tokio::net::TcpStream, D, F>
+impl<TReads, TWrites, TDestination, TFormat>
+    TransmogStream<TReads, TWrites, tokio::net::TcpStream, TDestination, TFormat>
 where
-    F: Clone,
+    TFormat: Clone,
 {
     /// Split a TCP-based stream into a read half and a write half.
     ///
@@ -155,8 +256,8 @@ where
     pub fn tcp_split(
         &mut self,
     ) -> (
-        TransmogTokioTcpReader<R, F>,
-        TransmogTokioTcpWriter<W, D, F>,
+        TransmogTokioTcpReader<TReads, TFormat>,
+        TransmogTokioTcpWriter<TWrites, TDestination, TFormat>,
     ) {
         // First, steal the reader state so it isn't lost
         let rbuff = self.stream.buffer.split();
@@ -172,7 +273,8 @@ where
         let mut reader = TransmogReader::new(r, format.clone());
         reader.buffer = rbuff;
         // And then the writer
-        let mut writer: TransmogWriter<_, _, D, F> = TransmogWriter::new(w, format).make_for();
+        let mut writer: TransmogWriter<_, _, TDestination, TFormat> =
+            TransmogWriter::new(w, format).make_for();
         writer.buffer = wbuff;
         writer.written = wsize;
         // All good!
@@ -180,9 +282,10 @@ where
     }
 }
 
-impl<S, T, D, F> AsyncRead for InternalTransmogWriter<S, T, D, F>
+impl<TStream, T, TDestination, TFormat> AsyncRead
+    for InternalTransmogWriter<TStream, T, TDestination, TFormat>
 where
-    S: AsyncRead + Unpin,
+    TStream: AsyncRead + Unpin,
 {
     fn poll_read(
         self: Pin<&mut Self>,
@@ -193,43 +296,53 @@ where
     }
 }
 
-impl<S, T, D, F> Deref for InternalTransmogWriter<S, T, D, F> {
-    type Target = TransmogWriter<S, T, D, F>;
+impl<TStream, T, TDestination, TFormat> Deref
+    for InternalTransmogWriter<TStream, T, TDestination, TFormat>
+{
+    type Target = TransmogWriter<TStream, T, TDestination, TFormat>;
     fn deref(&self) -> &Self::Target {
         &self.0
     }
 }
-impl<S, T, D, F> DerefMut for InternalTransmogWriter<S, T, D, F> {
+impl<TStream, T, TDestination, TFormat> DerefMut
+    for InternalTransmogWriter<TStream, T, TDestination, TFormat>
+{
     fn deref_mut(&mut self) -> &mut Self::Target {
         &mut self.0
     }
 }
 
-impl<R, W, S, D, F> Stream for TransmogStream<R, W, S, D, F>
+impl<TReads, TWrites, TStream, TDestination, TFormat> Stream
+    for TransmogStream<TReads, TWrites, TStream, TDestination, TFormat>
 where
-    S: Unpin,
-    TransmogReader<InternalTransmogWriter<S, W, D, F>, R, F>: Stream<Item = Result<R, F::Error>>,
-    F: Format<W>,
+    TStream: Unpin,
+    TransmogReader<
+        InternalTransmogWriter<TStream, TWrites, TDestination, TFormat>,
+        TReads,
+        TFormat,
+    >: Stream<Item = Result<TReads, TFormat::Error>>,
+    TFormat: Format<TWrites>,
 {
-    type Item = Result<R, F::Error>;
+    type Item = Result<TReads, TFormat::Error>;
     fn poll_next(mut self: Pin<&mut Self>, cx: &mut Context) -> Poll<Option<Self::Item>> {
         Pin::new(&mut self.stream).poll_next(cx)
     }
 }
 
-impl<R, W, S, D, F> Sink<W> for TransmogStream<R, W, S, D, F>
+impl<TReads, TWrites, TStream, TDestination, TFormat> Sink<TWrites>
+    for TransmogStream<TReads, TWrites, TStream, TDestination, TFormat>
 where
-    S: Unpin,
-    TransmogWriter<S, W, D, F>: Sink<W, Error = F::Error>,
-    F: Format<W>,
+    TStream: Unpin,
+    TransmogWriter<TStream, TWrites, TDestination, TFormat>: Sink<TWrites, Error = TFormat::Error>,
+    TFormat: Format<TWrites>,
 {
-    type Error = F::Error;
+    type Error = TFormat::Error;
 
     fn poll_ready(mut self: Pin<&mut Self>, cx: &mut Context) -> Poll<Result<(), Self::Error>> {
         Pin::new(&mut **self.stream.get_mut()).poll_ready(cx)
     }
 
-    fn start_send(mut self: Pin<&mut Self>, item: W) -> Result<(), Self::Error> {
+    fn start_send(mut self: Pin<&mut Self>, item: TWrites) -> Result<(), Self::Error> {
         Pin::new(&mut **self.stream.get_mut()).start_send(item)
     }
 
@@ -253,9 +366,9 @@ mod tests {
 
     async fn it_works<
         T: Serialize + DeserializeOwned + std::fmt::Debug + Clone + PartialEq + Send,
-        F: Format<T> + Clone + 'static,
+        TFormat: Format<T> + Clone + 'static,
     >(
-        format: F,
+        format: TFormat,
         values: &[T],
     ) {
         let echo = tokio::net::TcpListener::bind("127.0.0.1:0").await.unwrap();

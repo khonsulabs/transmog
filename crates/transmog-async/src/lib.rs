@@ -32,14 +32,13 @@ use std::{
 
 use futures_core::Stream;
 use futures_sink::Sink;
-use serde::{Deserialize, Serialize};
 use tokio::io::{AsyncRead, ReadBuf};
 
 pub use self::{
     reader::TransmogReader,
     writer::{AsyncDestination, SyncDestination, TransmogWriter, TransmogWriterFor},
 };
-use crate::format::Format;
+use transmog::Format;
 
 /// Builder helper to specify types without the need of turbofishing.
 pub struct Builder<TReads, TWrites, TStream, TFormat> {
@@ -61,9 +60,10 @@ impl<TStream, TFormat> Builder<(), (), TStream, TFormat> {
 
 impl<TStream, TFormat> Builder<(), (), TStream, TFormat> {
     /// Sets `T` as the type for both sending and receiving.
-    pub fn sends_and_receives<T: Serialize + for<'de> Deserialize<'de>>(
-        self,
-    ) -> Builder<T, T, TStream, TFormat> {
+    pub fn sends_and_receives<T>(self) -> Builder<T, T, TStream, TFormat>
+    where
+        TFormat: Format<T>,
+    {
         Builder {
             stream: self.stream,
             format: self.format,
@@ -74,9 +74,10 @@ impl<TStream, TFormat> Builder<(), (), TStream, TFormat> {
 
 impl<TReads, TStream, TFormat> Builder<TReads, (), TStream, TFormat> {
     /// Sets `T` as the type of data that is written to this stream.
-    pub fn sends<T: Serialize + for<'de> Deserialize<'de>>(
-        self,
-    ) -> Builder<TReads, T, TStream, TFormat> {
+    pub fn sends<T>(self) -> Builder<TReads, T, TStream, TFormat>
+    where
+        TFormat: Format<T>,
+    {
         Builder {
             stream: self.stream,
             format: self.format,
@@ -87,9 +88,10 @@ impl<TReads, TStream, TFormat> Builder<TReads, (), TStream, TFormat> {
 
 impl<TWrites, TStream, TFormat> Builder<(), TWrites, TStream, TFormat> {
     /// Sets `T` as the type of data that is read from this stream.
-    pub fn receives<T: Serialize + for<'de> Deserialize<'de>>(
-        self,
-    ) -> Builder<T, TWrites, TStream, TFormat> {
+    pub fn receives<T>(self) -> Builder<T, TWrites, TStream, TFormat>
+    where
+        TFormat: Format<T>,
+    {
         Builder {
             stream: self.stream,
             format: self.format,
@@ -358,14 +360,14 @@ where
 #[cfg(test)]
 mod tests {
     use futures::prelude::*;
-    use serde::{de::DeserializeOwned, Serialize};
     use tokio::io::AsyncWriteExt;
 
     use super::*;
-    use crate::format::{Bincode, Pot};
+    use transmog_pot::Pot;
+    use transmog_bincode::Bincode;
 
     async fn it_works<
-        T: Serialize + DeserializeOwned + std::fmt::Debug + Clone + PartialEq + Send,
+        T: std::fmt::Debug + Clone + PartialEq + Send,
         TFormat: Format<T> + Clone + 'static,
     >(
         format: TFormat,

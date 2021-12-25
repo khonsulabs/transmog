@@ -7,10 +7,9 @@ use std::{
 use futures_core::ready;
 use futures_sink::Sink;
 use ordered_varint::Variable;
-use serde::Serialize;
 use tokio::io::AsyncWrite;
 
-use crate::format::Format;
+use transmog::Format;
 
 /// A wrapper around an asynchronous sink that accepts, serializes, and sends Transmog-encoded
 /// values.
@@ -138,7 +137,6 @@ where
 
 impl<W, T, F> TransmogWriterFor<T, F> for TransmogWriter<W, T, AsyncDestination, F>
 where
-    T: Serialize,
     F: Format<T>,
 {
     fn append(&mut self, item: &T) -> Result<(), F::Error> {
@@ -159,7 +157,6 @@ where
 
 impl<W, T, F> TransmogWriterFor<T, F> for TransmogWriter<W, T, SyncDestination, F>
 where
-    T: Serialize,
     F: Format<T>,
 {
     fn append(&mut self, item: &T) -> Result<(), F::Error> {
@@ -169,7 +166,6 @@ where
 
 impl<W, T, D, F> Sink<T> for TransmogWriter<W, T, D, F>
 where
-    T: Serialize,
     F: Format<T>,
     W: AsyncWrite + Unpin,
     Self: TransmogWriterFor<T, F>,

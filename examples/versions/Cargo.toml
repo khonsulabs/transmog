@@ -1,0 +1,17 @@
+[package]
+name = "versions-examples"
+version = "0.1.0"
+edition = "2021"
+publish = false
+
+# See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
+
+[dependencies]
+transmog = { path = "../../crates/transmog" }
+transmog-versions = { path = "../../crates/transmog-versions" }
+transmog-pot = { path = "../../crates/transmog-pot" }
+transmog-bincode = { path = "../../crates/transmog-bincode" }
+
+serde = { version = "1", features = ["derive"] }
+thiserror = "1"
+anyhow = "1"

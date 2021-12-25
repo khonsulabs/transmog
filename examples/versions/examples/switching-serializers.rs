@@ -7,7 +7,9 @@ use std::{
 };
 
 use serde::{Deserialize, Serialize};
-use transmog::version::{self, Versioned};
+use transmog_bincode::bincode;
+use transmog_pot::pot;
+use transmog_versions::{self, UnknownVersion, Versioned};
 
 #[derive(Copy, Clone, Debug)]
 enum Versions {
@@ -22,13 +24,13 @@ impl Versioned for Versions {
 }
 
 impl TryFrom<u64> for Versions {
-    type Error = version::UnknownVersion;
+    type Error = UnknownVersion;
 
     fn try_from(value: u64) -> Result<Self, Self::Error> {
         match value {
             0 => Ok(Self::Legacy),
             1 => Ok(Self::Current),
-            other => Err(version::UnknownVersion(other)),
+            other => Err(UnknownVersion(other)),
         }
     }
 }
@@ -46,7 +48,7 @@ impl User {
         // This example uses Write to build the payload without extra data
         // copying, but it's a little more verbose. To see a simpler API, refer
         // to `wrap()` and see its usage in `versioned-serde.rs`.
-        version::write_header(&Versions::Current, &mut serialized)?;
+        transmog_versions::write_header(&Versions::Current, &mut serialized)?;
         pot::to_writer(self, &mut serialized)?;
 
         Ok(serialized)
@@ -55,12 +57,12 @@ impl User {
     fn deserialize_versioned<R: Read>(
         version: u64,
         data: BufReader<R>,
-    ) -> Result<Self, version::Error<SerializerErrors>> {
+    ) -> Result<Self, transmog_versions::Error<SerializerErrors>> {
         match Versions::try_from(version)? {
             Versions::Legacy => bincode::deserialize_from(data).map_err(SerializerErrors::Bincode),
             Versions::Current => pot::from_reader(data).map_err(SerializerErrors::Pot),
         }
-        .map_err(version::Error::Other)
+        .map_err(transmog_versions::Error::Other)
     }
 }
 
@@ -75,13 +77,13 @@ fn main() -> anyhow::Result<()> {
 
     // If we pass the bincode-encoded file into
     let deserialized_user =
-        version::decode(&originally_stored_data[..], User::deserialize_versioned)?;
+        transmog_versions::decode(&originally_stored_data[..], User::deserialize_versioned)?;
     assert_eq!(original_user, deserialized_user);
 
     // And, when we write out our new version, it will be wrapped by
     // `transmog` with the current version information.
     let new_data = deserialized_user.to_vec()?;
-    let deserialized_user = version::decode(&new_data[..], User::deserialize_versioned)?;
+    let deserialized_user = transmog_versions::decode(&new_data[..], User::deserialize_versioned)?;
     assert_eq!(original_user, deserialized_user);
 
     Ok(())

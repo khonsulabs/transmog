@@ -2,30 +2,32 @@ use std::io::{Read, Write};
 
 use serde::{Deserialize, Serialize};
 
-use crate::format::Format;
+use transmog::Format;
+
+pub use bincode;
 
 #[derive(Clone)]
-pub struct Pot;
+pub struct Bincode;
 
-impl<T> Format<T> for Pot
+impl<T> Format<T> for Bincode
 where
     T: Serialize + for<'de> Deserialize<'de>,
 {
-    type Error = pot::Error;
+    type Error = bincode::Error;
 
     fn serialize(&self, value: &T) -> Result<Vec<u8>, Self::Error> {
-        pot::to_vec(value)
+        bincode::serialize(value)
     }
 
     fn serialize_into<W: Write>(&self, value: &T, writer: W) -> Result<(), Self::Error> {
-        pot::to_writer(value, writer)
+        bincode::serialize_into(writer, value)
     }
 
     fn deserialize(&self, data: &[u8]) -> Result<T, Self::Error> {
-        pot::from_slice(data)
+        bincode::deserialize(data)
     }
 
     fn deserialize_from<R: Read>(&self, reader: R) -> Result<T, Self::Error> {
-        pot::from_reader(reader)
+        bincode::deserialize_from(reader)
     }
 }

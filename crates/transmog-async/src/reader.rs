@@ -8,10 +8,9 @@ use std::{
 use bytes::{Buf, BytesMut};
 use futures_core::{ready, Stream};
 use ordered_varint::Variable;
-use serde::Deserialize;
 use tokio::io::{AsyncRead, ReadBuf};
 
-use crate::format::Format;
+use transmog::Format;
 
 /// A wrapper around an asynchronous reader that produces an asynchronous stream
 /// of Transmog-decoded values.
@@ -83,7 +82,6 @@ impl<R, T, F> TransmogReader<R, T, F> {
 
 impl<R, T, F> Stream for TransmogReader<R, T, F>
 where
-    for<'a> T: Deserialize<'a>,
     R: AsyncRead + Unpin,
     F: Format<T>,
 {
@@ -130,7 +128,6 @@ enum ReadResult {
 
 impl<R, T, F> TransmogReader<R, T, F>
 where
-    for<'a> T: Deserialize<'a>,
     R: AsyncRead + Unpin,
 {
     fn fill(

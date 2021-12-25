@@ -1,0 +1,43 @@
+[package]
+name = "transmog"
+version = "0.1.0"
+edition = "2021"
+
+# See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
+
+[features]
+default = []
+strategy-bincode = ["bincode", "serde"]
+strategy-pot = ["pot", "serde"]
+stream = ["tokio", "futures-core", "futures-sink", "bytes"]
+
+[[example]]
+name = "stream"
+required-features = ["stream", "strategy-pot"]
+
+[[example]]
+name = "playground"
+required-features = ["strategy-bincode", "strategy-pot"]
+
+[dependencies]
+ordered-varint = "0.1.0-dev.1"
+thiserror = "1"
+serde = { version = "1", features = ["derive"], optional = true }
+bincode = { version = "1", optional = true }
+pot = { version = "1.0.0-rc.1", optional = true }
+futures-core = { version = "0.3", optional = true }
+futures-sink = { version = "0.3", optional = true }
+tokio = { version = "1.0", features = ["net"], optional = true }
+bytes = { version = "1.0", optional = true }
+
+[dev-dependencies]
+serde = { version = "1", features = ["derive"] }
+thiserror = "1"
+anyhow = "1"
+bincode = "1"
+pot = "1.0.0-rc.1"
+futures = "0.3"
+tokio = { version = "1.0", features = ["full"] }
+
+# [patch.crates-io]
+# pot = { path = "../pot/pot" }

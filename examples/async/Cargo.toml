@@ -1,0 +1,14 @@
+[package]
+name = "async-examples"
+version = "0.0.0"
+edition = "2021"
+publish = false
+
+[dependencies]
+transmog = { path = "../../crates/transmog" }
+transmog-async = { path = "../../crates/transmog-async" }
+transmog-pot = { path = "../../crates/transmog-pot" }
+serde = { version = "1", features = ["derive"] }
+futures = "0.3"
+tokio = { version = "1", features = ["full"] }
+anyhow = "1"

@@ -1,1 +1,1 @@
-initSidebarItems({"mod":[["test_util",""]],"trait":[["Format",""]]});
+initSidebarItems({"mod":[["test_util","Utilities for testing formats. Requires feature `test-util`."]],"trait":[["Format","A serialization format."]]});

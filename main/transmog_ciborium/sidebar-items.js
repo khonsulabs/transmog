@@ -1,1 +1,1 @@
-initSidebarItems({"enum":[["Error",""]],"struct":[["Ciborium",""]]});
+initSidebarItems({"enum":[["Error","CBOR serialization and deserialization errors."]],"struct":[["Ciborium","CBOR implementor of [`Format`]."]]});

@@ -1,1 +1,1 @@
-initSidebarItems({"struct":[["Pot",""]]});
+initSidebarItems({"struct":[["Pot","Pot implementor of [`Format`]."]]});

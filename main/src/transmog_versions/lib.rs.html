@@ -130,7 +130,56 @@
 <span id="130">130</span>
 <span id="131">131</span>
 <span id="132">132</span>
-</pre><pre class="rust"><code><span class="kw">use</span> <span class="ident">std</span>::{
+<span id="133">133</span>
+<span id="134">134</span>
+<span id="135">135</span>
+<span id="136">136</span>
+<span id="137">137</span>
+<span id="138">138</span>
+<span id="139">139</span>
+<span id="140">140</span>
+<span id="141">141</span>
+<span id="142">142</span>
+<span id="143">143</span>
+<span id="144">144</span>
+<span id="145">145</span>
+<span id="146">146</span>
+<span id="147">147</span>
+<span id="148">148</span>
+<span id="149">149</span>
+<span id="150">150</span>
+<span id="151">151</span>
+<span id="152">152</span>
+<span id="153">153</span>
+<span id="154">154</span>
+<span id="155">155</span>
+<span id="156">156</span>
+<span id="157">157</span>
+<span id="158">158</span>
+<span id="159">159</span>
+<span id="160">160</span>
+<span id="161">161</span>
+<span id="162">162</span>
+<span id="163">163</span>
+<span id="164">164</span>
+<span id="165">165</span>
+</pre><pre class="rust"><code><span class="doccomment">//! Multi-version/Multi-format support for Transmog</span>
+
+<span class="attribute">#![<span class="ident">forbid</span>(<span class="ident">unsafe_code</span>)]</span>
+<span class="attribute">#![<span class="ident">warn</span>(
+    <span class="ident">clippy::cargo</span>,
+    <span class="ident">missing_docs</span>,
+    <span class="comment">// clippy::missing_docs_in_private_items,</span>
+    <span class="ident">clippy::pedantic</span>,
+    <span class="ident">future_incompatible</span>,
+    <span class="ident">rust_2018_idioms</span>,
+)]</span>
+<span class="attribute">#![<span class="ident">allow</span>(
+    <span class="ident">clippy::missing_errors_doc</span>, <span class="comment">// TODO clippy::missing_errors_doc</span>
+    <span class="ident">clippy::option_if_let_else</span>,
+)]</span>
+
+<span class="kw">use</span> <span class="ident">std</span>::{
     <span class="ident">fmt::Display</span>,
     <span class="ident">io</span>::{<span class="ident">BufRead</span>, <span class="ident">BufReader</span>, <span class="ident">Read</span>, <span class="ident">Write</span>},
 };
@@ -139,11 +188,15 @@
 
 <span class="kw">const</span> <span class="ident">MAGIC_CODE</span>: <span class="kw-2">&amp;</span>[<span class="ident">u8</span>] <span class="op">=</span> <span class="string">b&quot;DVer&quot;</span>;
 
+<span class="doccomment">/// A type that has a constant version number.</span>
 <span class="kw">pub</span> <span class="kw">trait</span> <span class="ident">ConstVersioned</span> {
+    <span class="doccomment">/// The version of this type.</span>
     <span class="kw">const</span> <span class="ident">VERSION</span>: <span class="ident">u64</span>;
 }
 
+<span class="doccomment">/// A type that has a version number.</span>
 <span class="kw">pub</span> <span class="kw">trait</span> <span class="ident">Versioned</span> {
+    <span class="doccomment">/// The version of this value.</span>
     <span class="kw">fn</span> <span class="ident">version</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="ident">u64</span>;
 }
 
@@ -172,6 +225,7 @@
     }
 }
 
+<span class="doccomment">/// Write a version header for `versioned`, if needed, to `write`.</span>
 <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">write_header</span><span class="op">&lt;</span><span class="ident">V</span>: <span class="ident">Versioned</span>, <span class="ident">W</span>: <span class="ident">Write</span><span class="op">&gt;</span>(
     <span class="ident">versioned</span>: <span class="kw-2">&amp;</span><span class="ident">V</span>,
     <span class="kw-2">mut</span> <span class="ident">write</span>: <span class="ident">W</span>,
@@ -182,6 +236,7 @@
     <span class="prelude-val">Ok</span>(())
 }
 
+<span class="doccomment">/// Wrap `data` with a version header for `versioned`, if needed.</span>
 <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">wrap</span><span class="op">&lt;</span><span class="ident">V</span>: <span class="ident">Versioned</span><span class="op">&gt;</span>(<span class="ident">versioned</span>: <span class="kw-2">&amp;</span><span class="ident">V</span>, <span class="kw-2">mut</span> <span class="ident">data</span>: <span class="ident">Vec</span><span class="op">&lt;</span><span class="ident">u8</span><span class="op">&gt;</span>) -&gt; <span class="ident">Vec</span><span class="op">&lt;</span><span class="ident">u8</span><span class="op">&gt;</span> {
     <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Some</span>(<span class="ident">header</span>) <span class="op">=</span> <span class="ident">header</span>(<span class="ident">versioned</span>.<span class="ident">version</span>()) {
         <span class="ident">data</span>.<span class="ident">reserve</span>(<span class="ident">header</span>.<span class="ident">len</span>());
@@ -191,6 +246,9 @@
     <span class="ident">data</span>
 }
 
+<span class="doccomment">/// Decode a payload that may or may not contain a version header. If no header</span>
+<span class="doccomment">/// is found, `callback` is invoked with `0`. If a header is found, the parsed</span>
+<span class="doccomment">/// version number is passed to `callback`.</span>
 <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">decode</span><span class="op">&lt;</span><span class="ident">E</span>: <span class="ident">Display</span>, <span class="ident">T</span>, <span class="ident">R</span>: <span class="ident">Read</span>, <span class="ident">F</span>: <span class="ident">FnOnce</span>(<span class="ident">u64</span>, <span class="ident">BufReader</span><span class="op">&lt;</span><span class="ident">R</span><span class="op">&gt;</span>) -&gt; <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="ident">T</span>, <span class="ident">Error</span><span class="op">&lt;</span><span class="ident">E</span><span class="op">&gt;</span><span class="op">&gt;</span><span class="op">&gt;</span>(
     <span class="ident">data</span>: <span class="ident">R</span>,
     <span class="ident">callback</span>: <span class="ident">F</span>,
@@ -212,6 +270,11 @@
     }
 }
 
+<span class="doccomment">/// Decode a payload that may or may not contain a version header. If no header</span>
+<span class="doccomment">/// is found, the result is `(0, data)`. If a header is found, the parsed</span>
+<span class="doccomment">/// version number is returned along with a slice reference containing the</span>
+<span class="doccomment">/// previously-wrapped data.</span>
+<span class="attribute">#[<span class="ident">must_use</span>]</span>
 <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">unwrap_version</span>(<span class="kw-2">mut</span> <span class="ident">data</span>: <span class="kw-2">&amp;</span>[<span class="ident">u8</span>]) -&gt; (<span class="ident">u64</span>, <span class="kw-2">&amp;</span>[<span class="ident">u8</span>]) {
     <span class="kw">if</span> <span class="ident">data</span>.<span class="ident">starts_with</span>(<span class="kw-2">&amp;</span><span class="ident">MAGIC_CODE</span>[<span class="number">0</span>..<span class="number">4</span>]) {
         <span class="ident">data</span> <span class="op">=</span> <span class="kw-2">&amp;</span><span class="ident">data</span>[<span class="number">4</span>..];
@@ -222,6 +285,7 @@
     (<span class="number">0</span>, <span class="ident">data</span>)
 }
 
+<span class="doccomment">/// An error from `transmog-versions`.</span>
 <span class="attribute">#[<span class="ident">derive</span>(<span class="ident">thiserror::Error</span>, <span class="ident">Debug</span>)]</span>
 <span class="kw">pub</span> <span class="kw">enum</span> <span class="ident">Error</span><span class="op">&lt;</span><span class="ident">E</span>: <span class="ident">Display</span><span class="op">&gt;</span> {
     <span class="doccomment">/// An unknown version was encountered.</span>
@@ -230,10 +294,12 @@
     <span class="doccomment">/// An io error occurred</span>
     <span class="attribute">#[<span class="ident">error</span>(<span class="string">&quot;io error: {0}&quot;</span>)]</span>
     <span class="ident">Io</span>(<span class="attribute">#[<span class="ident">from</span>]</span> <span class="ident">std::io::Error</span>),
+    <span class="doccomment">/// An error occurred from a format.</span>
     <span class="attribute">#[<span class="ident">error</span>(<span class="string">&quot;{0}&quot;</span>)]</span>
-    <span class="ident">Other</span>(<span class="ident">E</span>),
+    <span class="ident">Format</span>(<span class="ident">E</span>),
 }
 
+<span class="doccomment">/// An unknown version was encountered.</span>
 <span class="attribute">#[<span class="ident">derive</span>(<span class="ident">thiserror::Error</span>, <span class="ident">Debug</span>)]</span>
 <span class="attribute">#[<span class="ident">error</span>(<span class="string">&quot;unknown version: {0}&quot;</span>)]</span>
 <span class="kw">pub</span> <span class="kw">struct</span> <span class="ident">UnknownVersion</span>(<span class="kw">pub</span> <span class="ident">u64</span>);

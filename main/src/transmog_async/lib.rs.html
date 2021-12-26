@@ -440,6 +440,20 @@
 <span id="440">440</span>
 <span id="441">441</span>
 <span id="442">442</span>
+<span id="443">443</span>
+<span id="444">444</span>
+<span id="445">445</span>
+<span id="446">446</span>
+<span id="447">447</span>
+<span id="448">448</span>
+<span id="449">449</span>
+<span id="450">450</span>
+<span id="451">451</span>
+<span id="452">452</span>
+<span id="453">453</span>
+<span id="454">454</span>
+<span id="455">455</span>
+<span id="456">456</span>
 </pre><pre class="rust"><code><span class="doccomment">//! Asynchronous access to a Transmog-encoded item stream.</span>
 <span class="doccomment">//!</span>
 <span class="doccomment">//! This crate enables you to asynchronously read from a Transmog-encoded</span>
@@ -458,7 +472,20 @@
 <span class="doccomment">//! This crate has been adapted from</span>
 <span class="doccomment">//! [`async-bincode`](https://github.com/jonhoo/async-bincode) to generically</span>
 <span class="doccomment">//! support the [`Format`] trait.</span>
-<span class="attribute">#![<span class="ident">warn</span>(<span class="ident">missing_docs</span>)]</span>
+<span class="attribute">#![<span class="ident">forbid</span>(<span class="ident">unsafe_code</span>)]</span>
+<span class="attribute">#![<span class="ident">warn</span>(
+    <span class="ident">clippy::cargo</span>,
+    <span class="ident">missing_docs</span>,
+    <span class="comment">// clippy::missing_docs_in_private_items,</span>
+    <span class="ident">clippy::pedantic</span>,
+    <span class="ident">future_incompatible</span>,
+    <span class="ident">rust_2018_idioms</span>,
+)]</span>
+<span class="attribute">#![<span class="ident">allow</span>(
+    <span class="ident">clippy::missing_errors_doc</span>, <span class="comment">// TODO clippy::missing_errors_doc</span>
+    <span class="ident">clippy::option_if_let_else</span>,
+    <span class="ident">clippy::module_name_repetitions</span>,
+)]</span>
 
 <span class="kw">mod</span> <span class="ident">reader</span>;
 <span class="kw">mod</span> <span class="ident">writer</span>;
@@ -587,7 +614,7 @@
 <span class="kw">impl</span><span class="op">&lt;</span><span class="ident">TStream</span>: <span class="ident">fmt::Debug</span>, <span class="ident">T</span>, <span class="ident">TDestination</span>, <span class="ident">TFormat</span><span class="op">&gt;</span> <span class="ident">fmt::Debug</span>
     <span class="kw">for</span> <span class="ident">InternalTransmogWriter</span><span class="op">&lt;</span><span class="ident">TStream</span>, <span class="ident">T</span>, <span class="ident">TDestination</span>, <span class="ident">TFormat</span><span class="op">&gt;</span>
 {
-    <span class="kw">fn</span> <span class="ident">fmt</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">f</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">fmt::Formatter</span>) -&gt; <span class="ident">fmt::Result</span> {
+    <span class="kw">fn</span> <span class="ident">fmt</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">f</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">fmt::Formatter</span><span class="op">&lt;</span><span class="lifetime">&#39;_</span><span class="op">&gt;</span>) -&gt; <span class="ident">fmt::Result</span> {
         <span class="self">self</span>.<span class="ident">get_ref</span>().<span class="ident">fmt</span>(<span class="ident">f</span>)
     }
 }
@@ -699,8 +726,8 @@
     <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">tcp_split</span>(
         <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>,
     ) -&gt; (
-        <span class="ident">TransmogTokioTcpReader</span><span class="op">&lt;</span><span class="ident">TReads</span>, <span class="ident">TFormat</span><span class="op">&gt;</span>,
-        <span class="ident">TransmogTokioTcpWriter</span><span class="op">&lt;</span><span class="ident">TWrites</span>, <span class="ident">TDestination</span>, <span class="ident">TFormat</span><span class="op">&gt;</span>,
+        <span class="ident">TransmogTokioTcpReader</span><span class="op">&lt;</span><span class="lifetime">&#39;_</span>, <span class="ident">TReads</span>, <span class="ident">TFormat</span><span class="op">&gt;</span>,
+        <span class="ident">TransmogTokioTcpWriter</span><span class="op">&lt;</span><span class="lifetime">&#39;_</span>, <span class="ident">TWrites</span>, <span class="ident">TDestination</span>, <span class="ident">TFormat</span><span class="op">&gt;</span>,
     ) {
         <span class="comment">// First, steal the reader state so it isn&#39;t lost</span>
         <span class="kw">let</span> <span class="ident">rbuff</span> <span class="op">=</span> <span class="self">self</span>.<span class="ident">stream</span>.<span class="ident">buffer</span>.<span class="ident">split</span>();
@@ -708,8 +735,8 @@
         <span class="kw">let</span> <span class="ident">writer</span> <span class="op">=</span> <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>.<span class="ident">stream</span>.<span class="ident">get_mut</span>().<span class="number">0</span>;
         <span class="kw">let</span> <span class="ident">format</span> <span class="op">=</span> <span class="ident">writer</span>.<span class="ident">format</span>().<span class="ident">clone</span>();
         <span class="comment">// And steal the writer state so it isn&#39;t lost</span>
-        <span class="kw">let</span> <span class="ident">wbuff</span> <span class="op">=</span> <span class="ident">writer</span>.<span class="ident">buffer</span>.<span class="ident">split_off</span>(<span class="number">0</span>);
-        <span class="kw">let</span> <span class="ident">wsize</span> <span class="op">=</span> <span class="ident">writer</span>.<span class="ident">written</span>;
+        <span class="kw">let</span> <span class="ident">write_buffer</span> <span class="op">=</span> <span class="ident">writer</span>.<span class="ident">buffer</span>.<span class="ident">split_off</span>(<span class="number">0</span>);
+        <span class="kw">let</span> <span class="ident">write_buffer_written</span> <span class="op">=</span> <span class="ident">writer</span>.<span class="ident">written</span>;
         <span class="comment">// Now split the stream</span>
         <span class="kw">let</span> (<span class="ident">r</span>, <span class="ident">w</span>) <span class="op">=</span> <span class="ident">writer</span>.<span class="ident">get_mut</span>().<span class="ident">split</span>();
         <span class="comment">// Then put the reader back together</span>
@@ -718,8 +745,8 @@
         <span class="comment">// And then the writer</span>
         <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">writer</span>: <span class="ident">TransmogWriter</span><span class="op">&lt;</span><span class="kw">_</span>, <span class="kw">_</span>, <span class="ident">TDestination</span>, <span class="ident">TFormat</span><span class="op">&gt;</span> <span class="op">=</span>
             <span class="ident">TransmogWriter::new</span>(<span class="ident">w</span>, <span class="ident">format</span>).<span class="ident">make_for</span>();
-        <span class="ident">writer</span>.<span class="ident">buffer</span> <span class="op">=</span> <span class="ident">wbuff</span>;
-        <span class="ident">writer</span>.<span class="ident">written</span> <span class="op">=</span> <span class="ident">wsize</span>;
+        <span class="ident">writer</span>.<span class="ident">buffer</span> <span class="op">=</span> <span class="ident">write_buffer</span>;
+        <span class="ident">writer</span>.<span class="ident">written</span> <span class="op">=</span> <span class="ident">write_buffer_written</span>;
         <span class="comment">// All good!</span>
         (<span class="ident">reader</span>, <span class="ident">writer</span>)
     }
@@ -732,8 +759,8 @@
 {
     <span class="kw">fn</span> <span class="ident">poll_read</span>(
         <span class="self">self</span>: <span class="ident">Pin</span><span class="op">&lt;</span><span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">Self</span><span class="op">&gt;</span>,
-        <span class="ident">cx</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">Context</span>,
-        <span class="ident">buf</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">ReadBuf</span>,
+        <span class="ident">cx</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">Context</span><span class="op">&lt;</span><span class="lifetime">&#39;_</span><span class="op">&gt;</span>,
+        <span class="ident">buf</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">ReadBuf</span><span class="op">&lt;</span><span class="lifetime">&#39;_</span><span class="op">&gt;</span>,
     ) -&gt; <span class="ident">Poll</span><span class="op">&lt;</span><span class="prelude-ty">Result</span><span class="op">&lt;</span>(), <span class="ident">io::Error</span><span class="op">&gt;</span><span class="op">&gt;</span> {
         <span class="ident">Pin::new</span>(<span class="self">self</span>.<span class="ident">get_mut</span>().<span class="ident">get_mut</span>()).<span class="ident">poll_read</span>(<span class="ident">cx</span>, <span class="ident">buf</span>)
     }
@@ -767,7 +794,7 @@
     <span class="ident">TFormat</span>: <span class="ident">Format</span><span class="op">&lt;</span><span class="ident">TWrites</span><span class="op">&gt;</span>,
 {
     <span class="kw">type</span> <span class="ident">Item</span> <span class="op">=</span> <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="ident">TReads</span>, <span class="ident">TFormat::Error</span><span class="op">&gt;</span>;
-    <span class="kw">fn</span> <span class="ident">poll_next</span>(<span class="kw-2">mut</span> <span class="self">self</span>: <span class="ident">Pin</span><span class="op">&lt;</span><span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">Self</span><span class="op">&gt;</span>, <span class="ident">cx</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">Context</span>) -&gt; <span class="ident">Poll</span><span class="op">&lt;</span><span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident"><span class="self">Self</span>::Item</span><span class="op">&gt;</span><span class="op">&gt;</span> {
+    <span class="kw">fn</span> <span class="ident">poll_next</span>(<span class="kw-2">mut</span> <span class="self">self</span>: <span class="ident">Pin</span><span class="op">&lt;</span><span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">Self</span><span class="op">&gt;</span>, <span class="ident">cx</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">Context</span><span class="op">&lt;</span><span class="lifetime">&#39;_</span><span class="op">&gt;</span>) -&gt; <span class="ident">Poll</span><span class="op">&lt;</span><span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident"><span class="self">Self</span>::Item</span><span class="op">&gt;</span><span class="op">&gt;</span> {
         <span class="ident">Pin::new</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>.<span class="ident">stream</span>).<span class="ident">poll_next</span>(<span class="ident">cx</span>)
     }
 }
@@ -781,7 +808,7 @@
 {
     <span class="kw">type</span> <span class="ident">Error</span> <span class="op">=</span> <span class="ident">TFormat::Error</span>;
 
-    <span class="kw">fn</span> <span class="ident">poll_ready</span>(<span class="kw-2">mut</span> <span class="self">self</span>: <span class="ident">Pin</span><span class="op">&lt;</span><span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">Self</span><span class="op">&gt;</span>, <span class="ident">cx</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">Context</span>) -&gt; <span class="ident">Poll</span><span class="op">&lt;</span><span class="prelude-ty">Result</span><span class="op">&lt;</span>(), <span class="ident"><span class="self">Self</span>::Error</span><span class="op">&gt;</span><span class="op">&gt;</span> {
+    <span class="kw">fn</span> <span class="ident">poll_ready</span>(<span class="kw-2">mut</span> <span class="self">self</span>: <span class="ident">Pin</span><span class="op">&lt;</span><span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">Self</span><span class="op">&gt;</span>, <span class="ident">cx</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">Context</span><span class="op">&lt;</span><span class="lifetime">&#39;_</span><span class="op">&gt;</span>) -&gt; <span class="ident">Poll</span><span class="op">&lt;</span><span class="prelude-ty">Result</span><span class="op">&lt;</span>(), <span class="ident"><span class="self">Self</span>::Error</span><span class="op">&gt;</span><span class="op">&gt;</span> {
         <span class="ident">Pin::new</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="kw-2">*</span><span class="kw-2">*</span><span class="self">self</span>.<span class="ident">stream</span>.<span class="ident">get_mut</span>()).<span class="ident">poll_ready</span>(<span class="ident">cx</span>)
     }
 
@@ -789,11 +816,11 @@
         <span class="ident">Pin::new</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="kw-2">*</span><span class="kw-2">*</span><span class="self">self</span>.<span class="ident">stream</span>.<span class="ident">get_mut</span>()).<span class="ident">start_send</span>(<span class="ident">item</span>)
     }
 
-    <span class="kw">fn</span> <span class="ident">poll_flush</span>(<span class="kw-2">mut</span> <span class="self">self</span>: <span class="ident">Pin</span><span class="op">&lt;</span><span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">Self</span><span class="op">&gt;</span>, <span class="ident">cx</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">Context</span>) -&gt; <span class="ident">Poll</span><span class="op">&lt;</span><span class="prelude-ty">Result</span><span class="op">&lt;</span>(), <span class="ident"><span class="self">Self</span>::Error</span><span class="op">&gt;</span><span class="op">&gt;</span> {
+    <span class="kw">fn</span> <span class="ident">poll_flush</span>(<span class="kw-2">mut</span> <span class="self">self</span>: <span class="ident">Pin</span><span class="op">&lt;</span><span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">Self</span><span class="op">&gt;</span>, <span class="ident">cx</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">Context</span><span class="op">&lt;</span><span class="lifetime">&#39;_</span><span class="op">&gt;</span>) -&gt; <span class="ident">Poll</span><span class="op">&lt;</span><span class="prelude-ty">Result</span><span class="op">&lt;</span>(), <span class="ident"><span class="self">Self</span>::Error</span><span class="op">&gt;</span><span class="op">&gt;</span> {
         <span class="ident">Pin::new</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="kw-2">*</span><span class="kw-2">*</span><span class="self">self</span>.<span class="ident">stream</span>.<span class="ident">get_mut</span>()).<span class="ident">poll_flush</span>(<span class="ident">cx</span>)
     }
 
-    <span class="kw">fn</span> <span class="ident">poll_close</span>(<span class="kw-2">mut</span> <span class="self">self</span>: <span class="ident">Pin</span><span class="op">&lt;</span><span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">Self</span><span class="op">&gt;</span>, <span class="ident">cx</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">Context</span>) -&gt; <span class="ident">Poll</span><span class="op">&lt;</span><span class="prelude-ty">Result</span><span class="op">&lt;</span>(), <span class="ident"><span class="self">Self</span>::Error</span><span class="op">&gt;</span><span class="op">&gt;</span> {
+    <span class="kw">fn</span> <span class="ident">poll_close</span>(<span class="kw-2">mut</span> <span class="self">self</span>: <span class="ident">Pin</span><span class="op">&lt;</span><span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">Self</span><span class="op">&gt;</span>, <span class="ident">cx</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">Context</span><span class="op">&lt;</span><span class="lifetime">&#39;_</span><span class="op">&gt;</span>) -&gt; <span class="ident">Poll</span><span class="op">&lt;</span><span class="prelude-ty">Result</span><span class="op">&lt;</span>(), <span class="ident"><span class="self">Self</span>::Error</span><span class="op">&gt;</span><span class="op">&gt;</span> {
         <span class="ident">Pin::new</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="kw-2">*</span><span class="kw-2">*</span><span class="self">self</span>.<span class="ident">stream</span>.<span class="ident">get_mut</span>()).<span class="ident">poll_close</span>(<span class="ident">cx</span>)
     }
 }
@@ -838,9 +865,9 @@
     <span class="attribute">#[<span class="ident">tokio::test</span>]</span>
     <span class="kw">async</span> <span class="kw">fn</span> <span class="ident">it_works_bincode</span>() {
         <span class="comment">// Test short payloads</span>
-        <span class="ident">it_works</span>(<span class="ident">Bincode</span>, <span class="kw-2">&amp;</span>[<span class="number">44</span>, <span class="number">42</span>]).<span class="kw">await</span>;
+        <span class="ident">it_works</span>(<span class="ident">Bincode::default</span>(), <span class="kw-2">&amp;</span>[<span class="number">44</span>, <span class="number">42</span>]).<span class="kw">await</span>;
         <span class="comment">// Test a long payload</span>
-        <span class="ident">it_works</span>(<span class="ident">Bincode</span>, <span class="kw-2">&amp;</span>[<span class="macro">vec!</span>[<span class="number">0_u8</span>; <span class="number">1_000_000</span>]]).<span class="kw">await</span>;
+        <span class="ident">it_works</span>(<span class="ident">Bincode::default</span>(), <span class="kw-2">&amp;</span>[<span class="macro">vec!</span>[<span class="number">0_u8</span>; <span class="number">1_000_000</span>]]).<span class="kw">await</span>;
     }
 
     <span class="attribute">#[<span class="ident">tokio::test</span>]</span>
@@ -859,16 +886,17 @@
         <span class="ident">tokio::spawn</span>(<span class="kw">async</span> <span class="kw">move</span> {
             <span class="kw">let</span> (<span class="ident">stream</span>, <span class="kw">_</span>) <span class="op">=</span> <span class="ident">echo</span>.<span class="ident">accept</span>().<span class="kw">await</span>.<span class="ident">unwrap</span>();
             <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">stream</span> <span class="op">=</span>
-                <span class="ident">TransmogStream</span>::<span class="op">&lt;</span><span class="ident">usize</span>, <span class="ident">usize</span>, <span class="kw">_</span>, <span class="kw">_</span>, <span class="kw">_</span><span class="op">&gt;</span><span class="ident">::new</span>(<span class="ident">stream</span>, <span class="ident">Bincode</span>).<span class="ident">for_async</span>();
+                <span class="ident">TransmogStream</span>::<span class="op">&lt;</span><span class="ident">usize</span>, <span class="ident">usize</span>, <span class="kw">_</span>, <span class="kw">_</span>, <span class="kw">_</span><span class="op">&gt;</span><span class="ident">::new</span>(<span class="ident">stream</span>, <span class="ident">Bincode::default</span>())
+                    .<span class="ident">for_async</span>();
             <span class="kw">let</span> (<span class="ident">r</span>, <span class="ident">w</span>) <span class="op">=</span> <span class="ident">stream</span>.<span class="ident">tcp_split</span>();
             <span class="ident">r</span>.<span class="ident">forward</span>(<span class="ident">w</span>).<span class="kw">await</span>.<span class="ident">unwrap</span>();
         });
 
         <span class="kw">let</span> <span class="ident">n</span> <span class="op">=</span> <span class="number">81920</span>;
         <span class="kw">let</span> <span class="ident">stream</span> <span class="op">=</span> <span class="ident">tokio::net::TcpStream::connect</span>(<span class="kw-2">&amp;</span><span class="ident">addr</span>).<span class="kw">await</span>.<span class="ident">unwrap</span>();
-        <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">c</span> <span class="op">=</span> <span class="ident">TransmogStream::new</span>(<span class="ident">stream</span>, <span class="ident">Bincode</span>).<span class="ident">for_async</span>();
+        <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">c</span> <span class="op">=</span> <span class="ident">TransmogStream::new</span>(<span class="ident">stream</span>, <span class="ident">Bincode::default</span>()).<span class="ident">for_async</span>();
 
-        <span class="ident">futures::stream::iter</span>(<span class="number">0usize</span>..<span class="ident">n</span>)
+        <span class="ident">futures::stream::iter</span>(<span class="number">0_usize</span>..<span class="ident">n</span>)
             .<span class="ident">map</span>(<span class="prelude-val">Ok</span>)
             .<span class="ident">forward</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">c</span>)
             .<span class="kw">await</span>

@@ -24,4 +24,4 @@ pub trait Format<T>: Send + Sync {
 }
 
 #[cfg(feature = "test-util")]
-mod test_util;
+pub mod test_util;

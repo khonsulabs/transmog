@@ -32,5 +32,7 @@ where
     }
 }
 
-#[cfg(test)]
-transmog::define_format_test_suite!(Pot);
+#[test]
+fn format_tests() {
+    transmog::test_util::test_format(Pot);
+}

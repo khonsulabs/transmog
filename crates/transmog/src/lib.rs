@@ -8,8 +8,17 @@ use std::{
 pub trait Format<T>: Send + Sync {
     type Error: From<std::io::Error> + Debug + Display;
 
+    #[allow(unused_variables)]
+    fn serialized_size(&self, value: &T) -> Result<Option<usize>, Self::Error> {
+        Ok(None)
+    }
+
     fn serialize(&self, value: &T) -> Result<Vec<u8>, Self::Error> {
-        let mut bytes = Vec::new();
+        let mut bytes = if let Some(serialized_size) = self.serialized_size(value)? {
+            Vec::with_capacity(serialized_size)
+        } else {
+            Vec::new()
+        };
         self.serialize_into(value, &mut bytes)?;
         Ok(bytes)
     }

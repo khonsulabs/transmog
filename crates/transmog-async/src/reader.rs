@@ -9,7 +9,6 @@ use bytes::{Buf, BytesMut};
 use futures_core::{ready, Stream};
 use ordered_varint::Variable;
 use tokio::io::{AsyncRead, ReadBuf};
-
 use transmog::Format;
 
 /// A wrapper around an asynchronous reader that produces an asynchronous stream

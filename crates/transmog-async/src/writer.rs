@@ -8,7 +8,6 @@ use futures_core::ready;
 use futures_sink::Sink;
 use ordered_varint::Variable;
 use tokio::io::AsyncWrite;
-
 use transmog::Format;
 
 /// A wrapper around an asynchronous sink that accepts, serializes, and sends Transmog-encoded
@@ -140,17 +139,25 @@ where
     F: Format<T>,
 {
     fn append(&mut self, item: &T) -> Result<(), F::Error> {
-        self.scratch_buffer.truncate(0);
+        if let Some(serialized_length) = self.format.serialized_size(item)? {
+            // TODO remove unwrap
+            let size = u64::try_from(serialized_length).unwrap();
+            // TODO remove unwrap
+            size.encode_variable(&mut self.buffer).unwrap();
+            self.format.serialize_into(item, &mut self.buffer)?;
+        } else {
+            // Use a scratch buffer to measure the size. This introduces an
+            // extra data copy, but by reusing the scratch buffer, that should
+            // be the only overhead.
+            self.scratch_buffer.truncate(0);
+            self.format.serialize_into(item, &mut self.scratch_buffer)?;
 
-        // TODO add a path for a format to estimate its size and use
-        // serialize_into on the target buffer instead of using an extra copy.
-        self.format.serialize_into(item, &mut self.scratch_buffer)?;
-
-        // TODO remove unwrap
-        let size = u64::try_from(self.scratch_buffer.len()).unwrap();
-        // TODO remove unwrap
-        size.encode_variable(&mut self.buffer).unwrap();
-        self.buffer.append(&mut self.scratch_buffer);
+            // TODO remove unwrap
+            let size = u64::try_from(self.scratch_buffer.len()).unwrap();
+            // TODO remove unwrap
+            size.encode_variable(&mut self.buffer).unwrap();
+            self.buffer.append(&mut self.scratch_buffer);
+        }
         Ok(())
     }
 }

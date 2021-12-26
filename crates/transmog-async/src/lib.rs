@@ -32,12 +32,12 @@ use std::{
 use futures_core::Stream;
 use futures_sink::Sink;
 use tokio::io::{AsyncRead, ReadBuf};
+use transmog::Format;
 
 pub use self::{
     reader::TransmogReader,
     writer::{AsyncDestination, SyncDestination, TransmogWriter, TransmogWriterFor},
 };
-use transmog::Format;
 
 /// Builder helper to specify types without the need of turbofishing.
 pub struct Builder<TReads, TWrites, TStream, TFormat> {
@@ -359,10 +359,10 @@ where
 #[cfg(test)]
 mod tests {
     use futures::prelude::*;
-
-    use super::*;
     use transmog_bincode::Bincode;
     use transmog_pot::Pot;
+
+    use super::*;
 
     async fn it_works<
         T: std::fmt::Debug + Clone + PartialEq + Send,

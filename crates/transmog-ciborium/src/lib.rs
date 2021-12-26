@@ -1,10 +1,8 @@
 use std::io::{Read, Write};
 
-use serde::{Deserialize, Serialize};
-
-use transmog::Format;
-
 pub use ciborium;
+use serde::{Deserialize, Serialize};
+use transmog::Format;
 
 #[derive(Clone)]
 pub struct Ciborium;

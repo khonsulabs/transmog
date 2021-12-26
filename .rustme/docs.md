@@ -11,7 +11,7 @@ implement a common set of traits via [Serde](https://serde.rs), but other crates
 can not or chose not to support Serde.
 
 At the end of the day, however, most serialization formats can be interacted
-with in a generic fashion. The [`Format`][todo!] trait aims to be the universal
+with in a generic fashion. The [`Format`][format] trait aims to be the universal
 serialization trait for any crate that can serialize from a `std::io::Read` and
 deserialize from a `std::io::Write`.
 
@@ -40,7 +40,7 @@ Plans to add a derive macro to remove even more boilerplate code is planned.
 
 The [`transmog-async`][transmog-async] crate is a fork of
 [`async-bincode`](https://crates.io/crates/async-bincde), altered to support the
-[`Format`] trait.
+[`Format`][format] trait.
 
 [format]: https://khonsulabs.github.io/transmog/main/transmog/trait.Format.html
 [transmog-async]: https://crates.io/crates/transmog-async

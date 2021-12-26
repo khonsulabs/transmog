@@ -140,10 +140,8 @@ where
 {
     fn append(&mut self, item: &T) -> Result<(), F::Error> {
         if let Some(serialized_length) = self.format.serialized_size(item)? {
-            // TODO remove unwrap
-            let size = u64::try_from(serialized_length).unwrap();
-            // TODO remove unwrap
-            size.encode_variable(&mut self.buffer).unwrap();
+            let size = usize_to_u64(serialized_length)?;
+            size.encode_variable(&mut self.buffer)?;
             self.format.serialize_into(item, &mut self.buffer)?;
         } else {
             // Use a scratch buffer to measure the size. This introduces an
@@ -152,14 +150,16 @@ where
             self.scratch_buffer.truncate(0);
             self.format.serialize_into(item, &mut self.scratch_buffer)?;
 
-            // TODO remove unwrap
-            let size = u64::try_from(self.scratch_buffer.len()).unwrap();
-            // TODO remove unwrap
-            size.encode_variable(&mut self.buffer).unwrap();
+            let size = usize_to_u64(self.scratch_buffer.len())?;
+            size.encode_variable(&mut self.buffer)?;
             self.buffer.append(&mut self.scratch_buffer);
         }
         Ok(())
     }
+}
+
+fn usize_to_u64(value: usize) -> Result<u64, std::io::Error> {
+    u64::try_from(value).map_err(|_| std::io::Error::from(std::io::ErrorKind::OutOfMemory))
 }
 
 impl<W, T, F> TransmogWriterFor<T, F> for TransmogWriter<W, T, SyncDestination, F>

@@ -440,10 +440,6 @@
 <span id="440">440</span>
 <span id="441">441</span>
 <span id="442">442</span>
-<span id="443">443</span>
-<span id="444">444</span>
-<span id="445">445</span>
-<span id="446">446</span>
 </pre><pre class="rust"><code><span class="doccomment">//! Asynchronous access to a Transmog-encoded item stream.</span>
 <span class="doccomment">//!</span>
 <span class="doccomment">//! This crate enables you to asynchronously read from a Transmog-encoded</span>
@@ -459,10 +455,9 @@
 <span class="doccomment">//! On the write side, Transmog buffers the serialized values, and</span>
 <span class="doccomment">//! asynchronously sends the resulting bytestream.</span>
 <span class="doccomment">//!</span>
-<span class="doccomment">//! This module has been adapted from</span>
+<span class="doccomment">//! This crate has been adapted from</span>
 <span class="doccomment">//! [`async-bincode`](https://github.com/jonhoo/async-bincode) to generically</span>
-<span class="doccomment">//! support different serialization formats, as well as this crates own</span>
-<span class="doccomment">//! versioning features.</span>
+<span class="doccomment">//! support the [`Format`] trait.</span>
 <span class="attribute">#![<span class="ident">warn</span>(<span class="ident">missing_docs</span>)]</span>
 
 <span class="kw">mod</span> <span class="ident">reader</span>;
@@ -806,11 +801,10 @@
 <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">test</span>)]</span>
 <span class="kw">mod</span> <span class="ident">tests</span> {
     <span class="kw">use</span> <span class="ident">futures::prelude</span>::<span class="kw-2">*</span>;
-    <span class="kw">use</span> <span class="ident">tokio::io::AsyncWriteExt</span>;
 
     <span class="kw">use</span> <span class="kw">super</span>::<span class="kw-2">*</span>;
-    <span class="kw">use</span> <span class="ident">transmog_pot::Pot</span>;
     <span class="kw">use</span> <span class="ident">transmog_bincode::Bincode</span>;
+    <span class="kw">use</span> <span class="ident">transmog_pot::Pot</span>;
 
     <span class="kw">async</span> <span class="kw">fn</span> <span class="ident">it_works</span><span class="op">&lt;</span>
         <span class="ident">T</span>: <span class="ident">std::fmt::Debug</span> <span class="op">+</span> <span class="ident">Clone</span> <span class="op">+</span> <span class="ident">PartialEq</span> <span class="op">+</span> <span class="ident">Send</span>,
@@ -879,8 +873,6 @@
             .<span class="ident">forward</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">c</span>)
             .<span class="kw">await</span>
             .<span class="ident">unwrap</span>();
-
-        <span class="ident">c</span>.<span class="ident">get_mut</span>().<span class="ident">shutdown</span>().<span class="kw">await</span>.<span class="ident">unwrap</span>();
 
         <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">at</span> <span class="op">=</span> <span class="number">0</span>;
         <span class="kw">while</span> <span class="kw">let</span> <span class="prelude-val">Some</span>(<span class="ident">got</span>) <span class="op">=</span> <span class="ident">c</span>.<span class="ident">next</span>().<span class="kw">await</span>.<span class="ident">transpose</span>().<span class="ident">unwrap</span>() {

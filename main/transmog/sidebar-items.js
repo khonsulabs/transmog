@@ -1,1 +1,1 @@
-initSidebarItems({"trait":[["Format",""]]});
+initSidebarItems({"macro":[["define_format_test_suite",""]],"trait":[["Format",""]]});

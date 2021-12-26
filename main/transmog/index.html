@@ -8,7 +8,7 @@
 implement a common set of traits via <a href="https://serde.rs">Serde</a>, but other crates
 can not or chose not to support Serde.</p>
 <p>At the end of the day, however, most serialization formats can be interacted
-with in a generic fashion. The <a href="https://doc.rust-lang.org/1.57.0/core/macro.todo.html" title="todo!"><code>Format</code></a> trait aims to be the universal
+with in a generic fashion. The <a href="https://khonsulabs.github.io/transmog/main/transmog/trait.Format.html"><code>Format</code></a> trait aims to be the universal
 serialization trait for any crate that can serialize from a <code>std::io::Read</code> and
 deserialize from a <code>std::io::Write</code>.</p>
 <h3 id="serialization-format-support" class="section-header"><a href="#serialization-format-support">Serialization format support</a></h3>
@@ -30,7 +30,7 @@ handling loading each version of data.</p>
 <h3 id="serializingdeserializing-from-a-futuresstream" class="section-header"><a href="#serializingdeserializing-from-a-futuresstream">Serializing/Deserializing from a <code>futures::Stream</code></a></h3>
 <p>The <a href="https://crates.io/crates/transmog-async"><code>transmog-async</code></a> crate is a fork of
 <a href="https://crates.io/crates/async-bincde"><code>async-bincode</code></a>, altered to support the
-<a href="trait.Format.html" title="Format"><code>Format</code></a> trait.</p>
+<a href="https://khonsulabs.github.io/transmog/main/transmog/trait.Format.html"><code>Format</code></a> trait.</p>
 </div></details><h2 id="macros" class="section-header"><a href="#macros">Macros</a></h2>
 <div class="item-table"><div class="item-row"><div class="item-left module-item"><a class="macro" href="macro.define_format_test_suite.html" title="transmog::define_format_test_suite macro">define_format_test_suite</a></div><div class="item-right docblock-short"></div></div></div><h2 id="traits" class="section-header"><a href="#traits">Traits</a></h2>
 <div class="item-table"><div class="item-row"><div class="item-left module-item"><a class="trait" href="trait.Format.html" title="transmog::Format trait">Format</a></div><div class="item-right docblock-short"></div></div></div></section><section id="search" class="content hidden"></section><div id="rustdoc-vars" data-root-path="../" data-current-crate="transmog" data-search-index-js="../search-index.js" data-search-js="../search.js"></div>

@@ -59,7 +59,7 @@ impl User {
                 )))
             }
         }
-        .map_err(transmog_versions::Error::Other)
+        .map_err(transmog_versions::Error::Format)
     }
 }
 

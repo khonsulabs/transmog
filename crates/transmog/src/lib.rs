@@ -1,18 +1,36 @@
 #![doc = include_str!("../crate-docs.md")]
+#![forbid(unsafe_code)]
+#![warn(
+    clippy::cargo,
+    missing_docs,
+    // clippy::missing_docs_in_private_items,
+    clippy::pedantic,
+    future_incompatible,
+    rust_2018_idioms,
+)]
+#![allow(
+    clippy::missing_errors_doc, // TODO clippy::missing_errors_doc
+    clippy::option_if_let_else,
+)]
 
 use std::{
     fmt::{Debug, Display},
     io::{Read, Write},
 };
 
+/// A serialization format.
 pub trait Format<T>: Send + Sync {
+    /// The error type this format produces.
     type Error: From<std::io::Error> + Debug + Display;
 
+    /// Return the number of bytes `value` will need to be serialized, or None
+    /// if pre-measuring is not implemented for this format.
     #[allow(unused_variables)]
     fn serialized_size(&self, value: &T) -> Result<Option<usize>, Self::Error> {
         Ok(None)
     }
 
+    /// Serialize `value` into a `Vec<u8>`.
     fn serialize(&self, value: &T) -> Result<Vec<u8>, Self::Error> {
         let mut bytes = if let Some(serialized_size) = self.serialized_size(value)? {
             Vec::with_capacity(serialized_size)
@@ -23,15 +41,19 @@ pub trait Format<T>: Send + Sync {
         Ok(bytes)
     }
 
+    /// Serialize `value` into `writer`.
     fn serialize_into<W: Write>(&self, value: &T, writer: W) -> Result<(), Self::Error>;
 
+    /// Deserialize `T` from `data`.
     fn deserialize(&self, data: &[u8]) -> Result<T, Self::Error> {
         self.deserialize_from(data)
     }
 
+    /// Deserialize `T` from `reader`.
     fn deserialize_from<R: Read>(&self, reader: R) -> Result<T, Self::Error>;
 }
 
+/// Utilities for testing formats. Requires feature `test-util`.
 #[cfg(any(test, feature = "test-util"))]
 pub mod test_util;
 
@@ -62,6 +84,6 @@ mod tests {
 
     #[test]
     fn basic_format() {
-        test_util::test_format(U64BEFormat);
+        test_util::test_format(&U64BEFormat);
     }
 }

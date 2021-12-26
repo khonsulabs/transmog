@@ -62,7 +62,7 @@ impl User {
             Versions::Legacy => bincode::deserialize_from(data).map_err(SerializerErrors::Bincode),
             Versions::Current => pot::from_reader(data).map_err(SerializerErrors::Pot),
         }
-        .map_err(transmog_versions::Error::Other)
+        .map_err(transmog_versions::Error::Format)
     }
 }
 

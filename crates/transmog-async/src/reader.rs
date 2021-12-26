@@ -85,7 +85,7 @@ where
     F: Format<T>,
 {
     type Item = Result<T, F::Error>;
-    fn poll_next(mut self: Pin<&mut Self>, cx: &mut Context) -> Poll<Option<Self::Item>> {
+    fn poll_next(mut self: Pin<&mut Self>, cx: &mut Context<'_>) -> Poll<Option<Self::Item>> {
         loop {
             if let ReadResult::Eof = ready!(self
                 .as_mut()
@@ -131,7 +131,7 @@ where
 {
     fn fill(
         mut self: Pin<&mut Self>,
-        cx: &mut Context,
+        cx: &mut Context<'_>,
         target_size: usize,
     ) -> Poll<Result<ReadResult, io::Error>> {
         if self.buffer.len() >= target_size {
@@ -165,9 +165,9 @@ where
         if n == 0 {
             if self.buffer.is_empty() {
                 return Poll::Ready(Ok(ReadResult::Eof));
-            } else {
-                return Poll::Ready(Err(io::Error::from(io::ErrorKind::BrokenPipe)));
             }
+
+            return Poll::Ready(Err(io::Error::from(io::ErrorKind::BrokenPipe)));
         }
 
         Poll::Ready(Ok(ReadResult::ReceivedData))

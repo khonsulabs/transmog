@@ -2,11 +2,12 @@
 name = "transmog"
 version = "0.1.0-dev.1"
 edition = "2021"
+description = "A universal serialization ecosystem"
 repository = "https://github.com/khonsulabs/transmog"
 license = "MIT OR Apache-2.0"
 keywords = ["serialization"]
 categories = ["encoding"]
-readme = "../README.md"
+readme = "../../README.md"
 
 [features]
 default = []

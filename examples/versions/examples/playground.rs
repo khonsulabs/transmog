@@ -67,31 +67,31 @@ impl Format<User> for Versions {
         Pot.serialize(value)
             .map(|data| transmog_versions::wrap(&2, data))
             .map_err(SerializerErrors::from)
-            .map_err(transmog_versions::Error::Other)
+            .map_err(transmog_versions::Error::Format)
     }
 
     fn serialize_into<W: Write>(&self, value: &User, mut writer: W) -> Result<(), Self::Error> {
         transmog_versions::write_header(&2, &mut writer)?;
         Pot.serialize_into(value, writer)
             .map_err(SerializerErrors::from)
-            .map_err(transmog_versions::Error::Other)
+            .map_err(transmog_versions::Error::Format)
     }
 
     fn deserialize(&self, data: &[u8]) -> Result<User, Self::Error> {
         let (version, data) = transmog_versions::unwrap_version(data);
         match version {
-            0 => <Bincode as Format<UserV0>>::deserialize(&Bincode, data)
+            0 => <Bincode as Format<UserV0>>::deserialize(&Bincode::default(), data)
                 .map(User::from)
                 .map_err(SerializerErrors::from)
-                .map_err(transmog_versions::Error::Other),
+                .map_err(transmog_versions::Error::Format),
             1 => <Pot as Format<UserV0>>::deserialize(&Pot, data)
                 .map(User::from)
                 .map_err(SerializerErrors::from)
-                .map_err(transmog_versions::Error::Other),
+                .map_err(transmog_versions::Error::Format),
             2 => <Pot as Format<User>>::deserialize(&Pot, data)
                 .map(User::from)
                 .map_err(SerializerErrors::from)
-                .map_err(transmog_versions::Error::Other),
+                .map_err(transmog_versions::Error::Format),
             other => Err(transmog_versions::Error::UnknownVersion(UnknownVersion(
                 other,
             ))),
@@ -100,18 +100,18 @@ impl Format<User> for Versions {
 
     fn deserialize_from<R: Read>(&self, reader: R) -> Result<User, Self::Error> {
         transmog_versions::decode(reader, |version, reader| match version {
-            0 => <Bincode as Format<UserV0>>::deserialize_from(&Bincode, reader)
+            0 => <Bincode as Format<UserV0>>::deserialize_from(&Bincode::default(), reader)
                 .map(User::from)
                 .map_err(SerializerErrors::from)
-                .map_err(transmog_versions::Error::Other),
+                .map_err(transmog_versions::Error::Format),
             1 => <Pot as Format<UserV0>>::deserialize_from(&Pot, reader)
                 .map(User::from)
                 .map_err(SerializerErrors::from)
-                .map_err(transmog_versions::Error::Other),
+                .map_err(transmog_versions::Error::Format),
             2 => <Pot as Format<User>>::deserialize_from(&Pot, reader)
                 .map(User::from)
                 .map_err(SerializerErrors::from)
-                .map_err(transmog_versions::Error::Other),
+                .map_err(transmog_versions::Error::Format),
             other => Err(transmog_versions::Error::UnknownVersion(UnknownVersion(
                 other,
             ))),

@@ -1,9 +1,26 @@
+//! CBOR adaptor for Transmog, powered by [`ciborium`].
+
+#![forbid(unsafe_code)]
+#![warn(
+    clippy::cargo,
+    missing_docs,
+    // clippy::missing_docs_in_private_items,
+    clippy::pedantic,
+    future_incompatible,
+    rust_2018_idioms,
+)]
+#![allow(
+    clippy::missing_errors_doc, // TODO clippy::missing_errors_doc
+    clippy::option_if_let_else,
+)]
+
 use std::io::{Read, Write};
 
 pub use ciborium;
 use serde::{Deserialize, Serialize};
 use transmog::Format;
 
+/// CBOR implementor of [`Format`].
 #[derive(Clone)]
 pub struct Ciborium;
 
@@ -22,10 +39,13 @@ where
     }
 }
 
+/// CBOR serialization and deserialization errors.
 #[derive(thiserror::Error, Debug)]
 pub enum Error {
+    /// A serialization-related error.
     #[error("serialization error: {0}")]
     Serialization(#[from] ciborium::ser::Error<std::io::Error>),
+    /// A deserialization-related error.
     #[error("serialization error: {0}")]
     Deserialization(#[from] ciborium::de::Error<std::io::Error>),
 }
@@ -38,5 +58,5 @@ impl From<std::io::Error> for Error {
 
 #[test]
 fn format_tests() {
-    transmog::test_util::test_format(Ciborium);
+    transmog::test_util::test_format(&Ciborium);
 }

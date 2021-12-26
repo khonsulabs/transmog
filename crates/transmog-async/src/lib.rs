@@ -16,7 +16,20 @@
 //! This crate has been adapted from
 //! [`async-bincode`](https://github.com/jonhoo/async-bincode) to generically
 //! support the [`Format`] trait.
-#![warn(missing_docs)]
+#![forbid(unsafe_code)]
+#![warn(
+    clippy::cargo,
+    missing_docs,
+    // clippy::missing_docs_in_private_items,
+    clippy::pedantic,
+    future_incompatible,
+    rust_2018_idioms,
+)]
+#![allow(
+    clippy::missing_errors_doc, // TODO clippy::missing_errors_doc
+    clippy::option_if_let_else,
+    clippy::module_name_repetitions,
+)]
 
 mod reader;
 mod writer;
@@ -145,7 +158,7 @@ pub struct InternalTransmogWriter<TStream, T, TDestination, TFormat>(
 impl<TStream: fmt::Debug, T, TDestination, TFormat> fmt::Debug
     for InternalTransmogWriter<TStream, T, TDestination, TFormat>
 {
-    fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         self.get_ref().fmt(f)
     }
 }
@@ -257,8 +270,8 @@ where
     pub fn tcp_split(
         &mut self,
     ) -> (
-        TransmogTokioTcpReader<TReads, TFormat>,
-        TransmogTokioTcpWriter<TWrites, TDestination, TFormat>,
+        TransmogTokioTcpReader<'_, TReads, TFormat>,
+        TransmogTokioTcpWriter<'_, TWrites, TDestination, TFormat>,
     ) {
         // First, steal the reader state so it isn't lost
         let rbuff = self.stream.buffer.split();
@@ -266,8 +279,8 @@ where
         let writer = &mut self.stream.get_mut().0;
         let format = writer.format().clone();
         // And steal the writer state so it isn't lost
-        let wbuff = writer.buffer.split_off(0);
-        let wsize = writer.written;
+        let write_buffer = writer.buffer.split_off(0);
+        let write_buffer_written = writer.written;
         // Now split the stream
         let (r, w) = writer.get_mut().split();
         // Then put the reader back together
@@ -276,8 +289,8 @@ where
         // And then the writer
         let mut writer: TransmogWriter<_, _, TDestination, TFormat> =
             TransmogWriter::new(w, format).make_for();
-        writer.buffer = wbuff;
-        writer.written = wsize;
+        writer.buffer = write_buffer;
+        writer.written = write_buffer_written;
         // All good!
         (reader, writer)
     }
@@ -290,8 +303,8 @@ where
 {
     fn poll_read(
         self: Pin<&mut Self>,
-        cx: &mut Context,
-        buf: &mut ReadBuf,
+        cx: &mut Context<'_>,
+        buf: &mut ReadBuf<'_>,
     ) -> Poll<Result<(), io::Error>> {
         Pin::new(self.get_mut().get_mut()).poll_read(cx, buf)
     }
@@ -325,7 +338,7 @@ where
     TFormat: Format<TWrites>,
 {
     type Item = Result<TReads, TFormat::Error>;
-    fn poll_next(mut self: Pin<&mut Self>, cx: &mut Context) -> Poll<Option<Self::Item>> {
+    fn poll_next(mut self: Pin<&mut Self>, cx: &mut Context<'_>) -> Poll<Option<Self::Item>> {
         Pin::new(&mut self.stream).poll_next(cx)
     }
 }
@@ -339,7 +352,7 @@ where
 {
     type Error = TFormat::Error;
 
-    fn poll_ready(mut self: Pin<&mut Self>, cx: &mut Context) -> Poll<Result<(), Self::Error>> {
+    fn poll_ready(mut self: Pin<&mut Self>, cx: &mut Context<'_>) -> Poll<Result<(), Self::Error>> {
         Pin::new(&mut **self.stream.get_mut()).poll_ready(cx)
     }
 
@@ -347,11 +360,11 @@ where
         Pin::new(&mut **self.stream.get_mut()).start_send(item)
     }
 
-    fn poll_flush(mut self: Pin<&mut Self>, cx: &mut Context) -> Poll<Result<(), Self::Error>> {
+    fn poll_flush(mut self: Pin<&mut Self>, cx: &mut Context<'_>) -> Poll<Result<(), Self::Error>> {
         Pin::new(&mut **self.stream.get_mut()).poll_flush(cx)
     }
 
-    fn poll_close(mut self: Pin<&mut Self>, cx: &mut Context) -> Poll<Result<(), Self::Error>> {
+    fn poll_close(mut self: Pin<&mut Self>, cx: &mut Context<'_>) -> Poll<Result<(), Self::Error>> {
         Pin::new(&mut **self.stream.get_mut()).poll_close(cx)
     }
 }
@@ -396,9 +409,9 @@ mod tests {
     #[tokio::test]
     async fn it_works_bincode() {
         // Test short payloads
-        it_works(Bincode, &[44, 42]).await;
+        it_works(Bincode::default(), &[44, 42]).await;
         // Test a long payload
-        it_works(Bincode, &[vec![0_u8; 1_000_000]]).await;
+        it_works(Bincode::default(), &[vec![0_u8; 1_000_000]]).await;
     }
 
     #[tokio::test]
@@ -417,16 +430,17 @@ mod tests {
         tokio::spawn(async move {
             let (stream, _) = echo.accept().await.unwrap();
             let mut stream =
-                TransmogStream::<usize, usize, _, _, _>::new(stream, Bincode).for_async();
+                TransmogStream::<usize, usize, _, _, _>::new(stream, Bincode::default())
+                    .for_async();
             let (r, w) = stream.tcp_split();
             r.forward(w).await.unwrap();
         });
 
         let n = 81920;
         let stream = tokio::net::TcpStream::connect(&addr).await.unwrap();
-        let mut c = TransmogStream::new(stream, Bincode).for_async();
+        let mut c = TransmogStream::new(stream, Bincode::default()).for_async();
 
-        futures::stream::iter(0usize..n)
+        futures::stream::iter(0_usize..n)
             .map(Ok)
             .forward(&mut c)
             .await

@@ -1,10 +1,27 @@
+//! Bincode adaptor for Transmog
+
+#![forbid(unsafe_code)]
+#![warn(
+    clippy::cargo,
+    missing_docs,
+    // clippy::missing_docs_in_private_items,
+    clippy::pedantic,
+    future_incompatible,
+    rust_2018_idioms,
+)]
+#![allow(
+    clippy::missing_errors_doc, // TODO clippy::missing_errors_doc
+    clippy::option_if_let_else,
+)]
+
 use std::io::{Read, Write};
 
 pub use bincode;
 use serde::{ser::Error, Deserialize, Serialize};
 use transmog::Format;
 
-#[derive(Clone)]
+/// Bincode implementor of [`Format`] with default options.
+#[derive(Clone, Default)]
 pub struct Bincode;
 
 impl<T> Format<T> for Bincode
@@ -40,5 +57,5 @@ where
 
 #[test]
 fn format_tests() {
-    transmog::test_util::test_format(Bincode);
+    transmog::test_util::test_format(&Bincode);
 }

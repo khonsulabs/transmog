@@ -1,3 +1,19 @@
+//! Multi-version/Multi-format support for Transmog
+
+#![forbid(unsafe_code)]
+#![warn(
+    clippy::cargo,
+    missing_docs,
+    // clippy::missing_docs_in_private_items,
+    clippy::pedantic,
+    future_incompatible,
+    rust_2018_idioms,
+)]
+#![allow(
+    clippy::missing_errors_doc, // TODO clippy::missing_errors_doc
+    clippy::option_if_let_else,
+)]
+
 use std::{
     fmt::Display,
     io::{BufRead, BufReader, Read, Write},
@@ -7,11 +23,15 @@ use ordered_varint::Variable;
 
 const MAGIC_CODE: &[u8] = b"DVer";
 
+/// A type that has a constant version number.
 pub trait ConstVersioned {
+    /// The version of this type.
     const VERSION: u64;
 }
 
+/// A type that has a version number.
 pub trait Versioned {
+    /// The version of this value.
     fn version(&self) -> u64;
 }
 
@@ -40,6 +60,7 @@ fn header(version: u64) -> Option<Vec<u8>> {
     }
 }
 
+/// Write a version header for `versioned`, if needed, to `write`.
 pub fn write_header<V: Versioned, W: Write>(
     versioned: &V,
     mut write: W,
@@ -50,6 +71,7 @@ pub fn write_header<V: Versioned, W: Write>(
     Ok(())
 }
 
+/// Wrap `data` with a version header for `versioned`, if needed.
 pub fn wrap<V: Versioned>(versioned: &V, mut data: Vec<u8>) -> Vec<u8> {
     if let Some(header) = header(versioned.version()) {
         data.reserve(header.len());
@@ -59,6 +81,9 @@ pub fn wrap<V: Versioned>(versioned: &V, mut data: Vec<u8>) -> Vec<u8> {
     data
 }
 
+/// Decode a payload that may or may not contain a version header. If no header
+/// is found, `callback` is invoked with `0`. If a header is found, the parsed
+/// version number is passed to `callback`.
 pub fn decode<E: Display, T, R: Read, F: FnOnce(u64, BufReader<R>) -> Result<T, Error<E>>>(
     data: R,
     callback: F,
@@ -80,6 +105,11 @@ pub fn decode<E: Display, T, R: Read, F: FnOnce(u64, BufReader<R>) -> Result<T, 
     }
 }
 
+/// Decode a payload that may or may not contain a version header. If no header
+/// is found, the result is `(0, data)`. If a header is found, the parsed
+/// version number is returned along with a slice reference containing the
+/// previously-wrapped data.
+#[must_use]
 pub fn unwrap_version(mut data: &[u8]) -> (u64, &[u8]) {
     if data.starts_with(&MAGIC_CODE[0..4]) {
         data = &data[4..];
@@ -90,6 +120,7 @@ pub fn unwrap_version(mut data: &[u8]) -> (u64, &[u8]) {
     (0, data)
 }
 
+/// An error from `transmog-versions`.
 #[derive(thiserror::Error, Debug)]
 pub enum Error<E: Display> {
     /// An unknown version was encountered.
@@ -98,10 +129,12 @@ pub enum Error<E: Display> {
     /// An io error occurred
     #[error("io error: {0}")]
     Io(#[from] std::io::Error),
+    /// An error occurred from a format.
     #[error("{0}")]
-    Other(E),
+    Format(E),
 }
 
+/// An unknown version was encountered.
 #[derive(thiserror::Error, Debug)]
 #[error("unknown version: {0}")]
 pub struct UnknownVersion(pub u64);

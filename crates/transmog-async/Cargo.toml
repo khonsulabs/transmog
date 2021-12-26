@@ -2,6 +2,12 @@
 name = "transmog-async"
 version = "0.1.0-dev.1"
 edition = "2021"
+description = "Async stream support for Transmog"
+repository = "https://github.com/khonsulabs/transmog"
+license = "MIT OR Apache-2.0"
+keywords = ["serialization", "async", "stream"]
+categories = ["encoding"]
+readme = "./README.md"
 
 [dependencies]
 transmog = { path = "../transmog", version = "0.1.0-dev.1" }

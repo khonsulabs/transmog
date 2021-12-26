@@ -2,7 +2,11 @@ use std::io::ErrorKind;
 
 use crate::Format;
 
-pub fn test_format<F: Format<u64> + Clone>(format: F) {
+/// Perform a simple set of tests on `format`. These tests are not meant to be
+/// exhaustive, and only test the basic functionality of Format. The soundness
+/// of each format should be tested within their respective crates.
+#[allow(clippy::missing_panics_doc)]
+pub fn test_format<F: Format<u64> + Clone>(format: &F) {
     let serialized_to_vec = format.serialize(&1_u64).unwrap();
     let deserialized_from_reader: u64 = format.deserialize_from(&serialized_to_vec[..]).unwrap();
     assert_eq!(deserialized_from_reader, 1);

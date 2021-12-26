@@ -474,12 +474,12 @@
 <span class="kw">use</span> <span class="ident">futures_core::Stream</span>;
 <span class="kw">use</span> <span class="ident">futures_sink::Sink</span>;
 <span class="kw">use</span> <span class="ident">tokio::io</span>::{<span class="ident">AsyncRead</span>, <span class="ident">ReadBuf</span>};
+<span class="kw">use</span> <span class="ident">transmog::Format</span>;
 
 <span class="kw">pub</span> <span class="kw">use</span> <span class="self">self</span>::{
     <span class="ident">reader::TransmogReader</span>,
     <span class="ident">writer</span>::{<span class="ident">AsyncDestination</span>, <span class="ident">SyncDestination</span>, <span class="ident">TransmogWriter</span>, <span class="ident">TransmogWriterFor</span>},
 };
-<span class="kw">use</span> <span class="ident">transmog::Format</span>;
 
 <span class="doccomment">/// Builder helper to specify types without the need of turbofishing.</span>
 <span class="kw">pub</span> <span class="kw">struct</span> <span class="ident">Builder</span><span class="op">&lt;</span><span class="ident">TReads</span>, <span class="ident">TWrites</span>, <span class="ident">TStream</span>, <span class="ident">TFormat</span><span class="op">&gt;</span> {
@@ -801,10 +801,10 @@
 <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">test</span>)]</span>
 <span class="kw">mod</span> <span class="ident">tests</span> {
     <span class="kw">use</span> <span class="ident">futures::prelude</span>::<span class="kw-2">*</span>;
-
-    <span class="kw">use</span> <span class="kw">super</span>::<span class="kw-2">*</span>;
     <span class="kw">use</span> <span class="ident">transmog_bincode::Bincode</span>;
     <span class="kw">use</span> <span class="ident">transmog_pot::Pot</span>;
+
+    <span class="kw">use</span> <span class="kw">super</span>::<span class="kw-2">*</span>;
 
     <span class="kw">async</span> <span class="kw">fn</span> <span class="ident">it_works</span><span class="op">&lt;</span>
         <span class="ident">T</span>: <span class="ident">std::fmt::Debug</span> <span class="op">+</span> <span class="ident">Clone</span> <span class="op">+</span> <span class="ident">PartialEq</span> <span class="op">+</span> <span class="ident">Send</span>,

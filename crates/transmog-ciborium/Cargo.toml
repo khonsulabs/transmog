@@ -1,8 +1,17 @@
 [package]
 name = "transmog-ciborium"
-version = "0.1.0"
+version = "0.1.0-dev.1"
 edition = "2021"
 
 # See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
 
 [dependencies]
+ciborium = "0.2"
+transmog = { path = "../transmog", version = "0.1.0-dev.1" }
+serde = "1"
+thiserror = "1"
+
+[dev-dependencies]
+transmog = { path = "../transmog", version = "0.1.0-dev.1", features = [
+    "test-util",
+] }

@@ -13,10 +13,9 @@
 //! On the write side, Transmog buffers the serialized values, and
 //! asynchronously sends the resulting bytestream.
 //!
-//! This module has been adapted from
+//! This crate has been adapted from
 //! [`async-bincode`](https://github.com/jonhoo/async-bincode) to generically
-//! support different serialization formats, as well as this crates own
-//! versioning features.
+//! support the [`Format`] trait.
 #![warn(missing_docs)]
 
 mod reader;
@@ -360,11 +359,10 @@ where
 #[cfg(test)]
 mod tests {
     use futures::prelude::*;
-    use tokio::io::AsyncWriteExt;
 
     use super::*;
-    use transmog_pot::Pot;
     use transmog_bincode::Bincode;
+    use transmog_pot::Pot;
 
     async fn it_works<
         T: std::fmt::Debug + Clone + PartialEq + Send,
@@ -433,8 +431,6 @@ mod tests {
             .forward(&mut c)
             .await
             .unwrap();
-
-        c.get_mut().shutdown().await.unwrap();
 
         let mut at = 0;
         while let Some(got) = c.next().await.transpose().unwrap() {

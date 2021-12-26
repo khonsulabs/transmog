@@ -31,3 +31,6 @@ where
         bincode::deserialize_from(reader)
     }
 }
+
+#[cfg(test)]
+transmog::define_format_test_suite!(Bincode);

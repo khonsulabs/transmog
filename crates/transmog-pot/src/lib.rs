@@ -31,3 +31,6 @@ where
         pot::from_reader(reader)
     }
 }
+
+#[cfg(test)]
+transmog::define_format_test_suite!(Pot);

@@ -87,13 +87,10 @@ where
     type Item = Result<T, F::Error>;
     fn poll_next(mut self: Pin<&mut Self>, cx: &mut Context<'_>) -> Poll<Option<Self::Item>> {
         loop {
-            if let ReadResult::Eof = ready!(self
+            let fill_result = ready!(self
                 .as_mut()
                 .fill(cx, 9)
-                .map_err(<F::Error as From<std::io::Error>>::from))?
-            {
-                break Poll::Ready(None);
-            }
+                .map_err(<F::Error as From<std::io::Error>>::from))?;
 
             let mut buf_reader = &self.buffer[..];
             let buffer_start = buf_reader.as_ptr() as usize;
@@ -114,6 +111,8 @@ where
                     self.buffer.advance(target_buffer_size);
                     break Poll::Ready(Some(Ok(message)));
                 }
+            } else if let ReadResult::Eof = fill_result {
+                break Poll::Ready(None);
             }
         }
     }
@@ -163,11 +162,7 @@ where
         let read = rest.split_to(n);
         self.buffer.unsplit(read);
         if n == 0 {
-            if self.buffer.is_empty() {
-                return Poll::Ready(Ok(ReadResult::Eof));
-            }
-
-            return Poll::Ready(Err(io::Error::from(io::ErrorKind::BrokenPipe)));
+            return Poll::Ready(Ok(ReadResult::Eof));
         }
 
         Poll::Ready(Ok(ReadResult::ReceivedData))

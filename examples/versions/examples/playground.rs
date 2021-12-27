@@ -80,7 +80,7 @@ impl Format<User> for Versions {
     fn deserialize(&self, data: &[u8]) -> Result<User, Self::Error> {
         let (version, data) = transmog_versions::unwrap_version(data);
         match version {
-            0 => <Bincode as Format<UserV0>>::deserialize(&Bincode::default(), data)
+            0 => <Bincode as Format<UserV0>>::deserialize(&Bincode::legacy_default(), data)
                 .map(User::from)
                 .map_err(SerializerErrors::from)
                 .map_err(transmog_versions::Error::Format),
@@ -100,7 +100,7 @@ impl Format<User> for Versions {
 
     fn deserialize_from<R: Read>(&self, reader: R) -> Result<User, Self::Error> {
         transmog_versions::decode(reader, |version, reader| match version {
-            0 => <Bincode as Format<UserV0>>::deserialize_from(&Bincode::default(), reader)
+            0 => <Bincode as Format<UserV0>>::deserialize_from(&Bincode::legacy_default(), reader)
                 .map(User::from)
                 .map_err(SerializerErrors::from)
                 .map_err(transmog_versions::Error::Format),

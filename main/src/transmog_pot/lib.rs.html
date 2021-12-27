@@ -51,6 +51,13 @@
 <span id="51">51</span>
 <span id="52">52</span>
 <span id="53">53</span>
+<span id="54">54</span>
+<span id="55">55</span>
+<span id="56">56</span>
+<span id="57">57</span>
+<span id="58">58</span>
+<span id="59">59</span>
+<span id="60">60</span>
 </pre><pre class="rust"><code><span class="doccomment">//! Pot adaptor for Transmog.</span>
 
 <span class="attribute">#![<span class="ident">forbid</span>(<span class="ident">unsafe_code</span>)]</span>
@@ -74,8 +81,14 @@
 <span class="kw">use</span> <span class="ident">transmog::Format</span>;
 
 <span class="doccomment">/// Pot implementor of [`Format`].</span>
-<span class="attribute">#[<span class="ident">derive</span>(<span class="ident">Clone</span>)]</span>
-<span class="kw">pub</span> <span class="kw">struct</span> <span class="ident">Pot</span>;
+<span class="attribute">#[<span class="ident">derive</span>(<span class="ident">Clone</span>, <span class="ident">Default</span>)]</span>
+<span class="kw">pub</span> <span class="kw">struct</span> <span class="ident">Pot</span>(<span class="ident">pot::Config</span>);
+
+<span class="kw">impl</span> <span class="ident">From</span><span class="op">&lt;</span><span class="ident">pot::Config</span><span class="op">&gt;</span> <span class="kw">for</span> <span class="ident">Pot</span> {
+    <span class="kw">fn</span> <span class="ident">from</span>(<span class="ident">config</span>: <span class="ident">pot::Config</span>) -&gt; <span class="self">Self</span> {
+        <span class="self">Self</span>(<span class="ident">config</span>)
+    }
+}
 
 <span class="kw">impl</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span> <span class="ident">Format</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span> <span class="kw">for</span> <span class="ident">Pot</span>
 <span class="kw">where</span>
@@ -84,25 +97,26 @@
     <span class="kw">type</span> <span class="ident">Error</span> <span class="op">=</span> <span class="ident">pot::Error</span>;
 
     <span class="kw">fn</span> <span class="ident">serialize</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">value</span>: <span class="kw-2">&amp;</span><span class="ident">T</span>) -&gt; <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="ident">Vec</span><span class="op">&lt;</span><span class="ident">u8</span><span class="op">&gt;</span>, <span class="ident"><span class="self">Self</span>::Error</span><span class="op">&gt;</span> {
-        <span class="ident">pot::to_vec</span>(<span class="ident">value</span>)
+        <span class="self">self</span>.<span class="number">0</span>.<span class="ident">serialize</span>(<span class="ident">value</span>)
     }
 
     <span class="kw">fn</span> <span class="ident">serialize_into</span><span class="op">&lt;</span><span class="ident">W</span>: <span class="ident">Write</span><span class="op">&gt;</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">value</span>: <span class="kw-2">&amp;</span><span class="ident">T</span>, <span class="ident">writer</span>: <span class="ident">W</span>) -&gt; <span class="prelude-ty">Result</span><span class="op">&lt;</span>(), <span class="ident"><span class="self">Self</span>::Error</span><span class="op">&gt;</span> {
-        <span class="ident">pot::to_writer</span>(<span class="ident">value</span>, <span class="ident">writer</span>)
+        <span class="self">self</span>.<span class="number">0</span>.<span class="ident">serialize_into</span>(<span class="ident">value</span>, <span class="ident">writer</span>)
     }
 
     <span class="kw">fn</span> <span class="ident">deserialize</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">data</span>: <span class="kw-2">&amp;</span>[<span class="ident">u8</span>]) -&gt; <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="ident">T</span>, <span class="ident"><span class="self">Self</span>::Error</span><span class="op">&gt;</span> {
-        <span class="ident">pot::from_slice</span>(<span class="ident">data</span>)
+        <span class="self">self</span>.<span class="number">0</span>.<span class="ident">deserialize</span>(<span class="ident">data</span>)
     }
 
     <span class="kw">fn</span> <span class="ident">deserialize_from</span><span class="op">&lt;</span><span class="ident">R</span>: <span class="ident">Read</span><span class="op">&gt;</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">reader</span>: <span class="ident">R</span>) -&gt; <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="ident">T</span>, <span class="ident"><span class="self">Self</span>::Error</span><span class="op">&gt;</span> {
-        <span class="ident">pot::from_reader</span>(<span class="ident">reader</span>)
+        <span class="self">self</span>.<span class="number">0</span>.<span class="ident">deserialize_from</span>(<span class="ident">reader</span>)
     }
 }
 
 <span class="attribute">#[<span class="ident">test</span>]</span>
 <span class="kw">fn</span> <span class="ident">format_tests</span>() {
-    <span class="ident">transmog::test_util::test_format</span>(<span class="kw-2">&amp;</span><span class="ident">Pot</span>);
+    <span class="ident">transmog::test_util::test_format</span>(<span class="kw-2">&amp;</span><span class="ident">Pot::default</span>());
+    <span class="ident">transmog::test_util::test_format</span>(<span class="kw-2">&amp;</span><span class="ident">Pot::from</span>(<span class="ident">pot::Config::default</span>().<span class="ident">allocation_budget</span>(<span class="number">64</span>)));
 }
 </code></pre></div>
 </section><section id="search" class="content hidden"></section><div id="rustdoc-vars" data-root-path="../../" data-current-crate="transmog_pot" data-search-index-js="../../search-index.js" data-search-js="../../search.js"></div>

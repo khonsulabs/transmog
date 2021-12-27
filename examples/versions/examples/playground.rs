@@ -64,7 +64,8 @@ impl Format<User> for Versions {
     type Error = transmog_versions::Error<SerializerErrors>;
 
     fn serialize(&self, value: &User) -> Result<Vec<u8>, Self::Error> {
-        Pot.serialize(value)
+        Pot::default()
+            .serialize(value)
             .map(|data| transmog_versions::wrap(&2, data))
             .map_err(SerializerErrors::from)
             .map_err(transmog_versions::Error::Format)
@@ -72,7 +73,8 @@ impl Format<User> for Versions {
 
     fn serialize_into<W: Write>(&self, value: &User, mut writer: W) -> Result<(), Self::Error> {
         transmog_versions::write_header(&2, &mut writer)?;
-        Pot.serialize_into(value, writer)
+        Pot::default()
+            .serialize_into(value, writer)
             .map_err(SerializerErrors::from)
             .map_err(transmog_versions::Error::Format)
     }
@@ -84,11 +86,11 @@ impl Format<User> for Versions {
                 .map(User::from)
                 .map_err(SerializerErrors::from)
                 .map_err(transmog_versions::Error::Format),
-            1 => <Pot as Format<UserV0>>::deserialize(&Pot, data)
+            1 => <Pot as Format<UserV0>>::deserialize(&Pot::default(), data)
                 .map(User::from)
                 .map_err(SerializerErrors::from)
                 .map_err(transmog_versions::Error::Format),
-            2 => <Pot as Format<User>>::deserialize(&Pot, data)
+            2 => <Pot as Format<User>>::deserialize(&Pot::default(), data)
                 .map(User::from)
                 .map_err(SerializerErrors::from)
                 .map_err(transmog_versions::Error::Format),
@@ -104,11 +106,11 @@ impl Format<User> for Versions {
                 .map(User::from)
                 .map_err(SerializerErrors::from)
                 .map_err(transmog_versions::Error::Format),
-            1 => <Pot as Format<UserV0>>::deserialize_from(&Pot, reader)
+            1 => <Pot as Format<UserV0>>::deserialize_from(&Pot::default(), reader)
                 .map(User::from)
                 .map_err(SerializerErrors::from)
                 .map_err(transmog_versions::Error::Format),
-            2 => <Pot as Format<User>>::deserialize_from(&Pot, reader)
+            2 => <Pot as Format<User>>::deserialize_from(&Pot::default(), reader)
                 .map(User::from)
                 .map_err(SerializerErrors::from)
                 .map_err(transmog_versions::Error::Format),

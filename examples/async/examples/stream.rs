@@ -12,7 +12,7 @@ async fn main() -> anyhow::Result<()> {
 
     tokio::spawn(async move {
         let (stream, _) = echo.accept().await.unwrap();
-        let mut stream = TransmogStream::build(stream, Pot)
+        let mut stream = TransmogStream::build(stream, Pot::default())
             .sends_and_receives::<u64>()
             .for_async();
         let (r, w) = stream.tcp_split();
@@ -20,7 +20,7 @@ async fn main() -> anyhow::Result<()> {
     });
 
     let client = tokio::net::TcpStream::connect(&addr).await.unwrap();
-    let mut client = TransmogStream::build(client, Pot)
+    let mut client = TransmogStream::build(client, Pot::default())
         .sends_and_receives::<u64>()
         .for_async();
 

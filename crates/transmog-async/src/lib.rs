@@ -417,9 +417,9 @@ mod tests {
     #[tokio::test]
     async fn it_works_pot() {
         // Test short payloads
-        it_works(Pot, &[44, 42]).await;
+        it_works(Pot::default(), &[44, 42]).await;
         // Test a long payload
-        it_works(Pot, &[vec![0_u8; 1_000_000]]).await;
+        it_works(Pot::default(), &[vec![0_u8; 1_000_000]]).await;
     }
 
     #[tokio::test]

@@ -8,6 +8,10 @@ use crate::Format;
 #[allow(clippy::missing_panics_doc)]
 pub fn test_format<F: Format<u64> + Clone>(format: &F) {
     let serialized_to_vec = format.serialize(&1_u64).unwrap();
+    if let Some(expected_size) = format.serialized_size(&1_u64).unwrap() {
+        assert_eq!(serialized_to_vec.len(), expected_size);
+    }
+
     let deserialized_from_reader: u64 = format.deserialize_from(&serialized_to_vec[..]).unwrap();
     assert_eq!(deserialized_from_reader, 1);
 

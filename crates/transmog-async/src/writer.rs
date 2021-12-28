@@ -118,7 +118,7 @@ impl<W, T, F> TransmogWriter<W, T, AsyncDestination, F> {
     }
 }
 
-/// A marker that indicates that the wrapping type is compatible with `TransmogReader`.
+/// A marker that indicates that the wrapping type is compatible with [`TransmogReader`](super::TransmogReader).
 #[derive(Debug)]
 pub struct AsyncDestination;
 

@@ -1,5 +1,4 @@
-//! CBOR adaptor for Transmog, powered by [`ciborium`].
-
+#![doc = include_str!("../.crate-docs.md")]
 #![forbid(unsafe_code)]
 #![warn(
     clippy::cargo,
@@ -21,10 +20,10 @@ use serde::{Deserialize, Serialize};
 use transmog::Format;
 
 /// CBOR implementor of [`Format`].
-#[derive(Clone)]
-pub struct Ciborium;
+#[derive(Clone, Default)]
+pub struct Cbor;
 
-impl<T> Format<T> for Ciborium
+impl<T> Format<T> for Cbor
 where
     T: Serialize + for<'de> Deserialize<'de>,
 {
@@ -58,5 +57,5 @@ impl From<std::io::Error> for Error {
 
 #[test]
 fn format_tests() {
-    transmog::test_util::test_format(&Ciborium);
+    transmog::test_util::test_format(&Cbor);
 }

@@ -5,7 +5,7 @@ Configuration(
             "docs.md",
             "https://github.com/khonsulabs/.github/raw/main/snippets/readme-footer.md",
         ],
-        "../crates/transmog/crate-docs.md":  [
+        "../crates/transmog/.crate-docs.md":  [
             "docs.md",
         ],
         "../CONTRIBUTING.md":  [

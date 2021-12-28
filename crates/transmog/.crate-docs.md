@@ -15,20 +15,30 @@ with in a generic fashion. The [`Format`][format] trait aims to be the universal
 serialization trait for any crate that can serialize from a `std::io::Read` and
 deserialize from a `std::io::Write`.
 
+## Status of this project
+
+We are currently at the experimentation phase of creating this ecosystem. All
+constructive criticism, format requests, and questions are welcome on [Github
+Issues](https://github.com/khonsulabs/transmog/issues/new). We are looking to
+use this crate as a strategy of offering versioned data support in
+[BonsaiDb](https://github.com/khonsulabs/bonsaidb) as well as customizable
+serialization support for [`Fabruic`](https://github.com/khonsulabs/fabruic).
+
 ## Serialization format support
 
 We accept pull requests for any moderately stable serialization API.
 
 - [`Bincode`](https://crates.io/crates/bincode) via [`transmog-bincode`][transmog-bincode]
-- [`Ciborium`](https://crates.io/crates/ciborium) via [`transmog-ciborium`][transmog-ciborium]
+- CBOR via [`transmog-cbor`][transmog-cbor], powered by
+  [`Ciborium`](https://crates.io/crates/ciborium).
 - [`Pot`](https://crates.io/crates/pot) via [`transmog-pot`][transmog-pot]
 
 ## Utilities for migrating data structures
 
 Sometimes a breaking change is unavoidable. Perhaps, you've decided a different
 format is better for your situation. Or, you refactored your structure so much
-that serde's built-in attributes aren't enough to help. [`transmog-versions`][transmog-versions] to
-the rescue!
+that serde's built-in attributes aren't enough to help.
+[`transmog-versions`][transmog-versions] to the rescue!
 
 The [`transmog-versions`][transmog-versions] crate provides APIs that allow you
 to treat your currently stored data as "version 0" and provide the logic for
@@ -45,6 +55,6 @@ The [`transmog-async`][transmog-async] crate is a fork of
 [format]: https://khonsulabs.github.io/transmog/main/transmog/trait.Format.html
 [transmog-async]: https://crates.io/crates/transmog-async
 [transmog-bincode]: https://crates.io/crates/transmog-bincode
-[transmog-ciborium]: https://crates.io/crates/transmog-ciborium
+[transmog-cbor]: https://crates.io/crates/transmog-cbor
 [transmog-pot]: https://crates.io/crates/transmog-pot
 [transmog-versions]: https://crates.io/crates/transmog-versions

@@ -1,0 +1,15 @@
+Configuration(
+    files: {
+        "../README.md":  [
+            "header.md",
+            "versions-docs.md",
+            "https://github.com/khonsulabs/.github/raw/main/snippets/readme-footer.md",
+        ],
+        "../.crate-docs.md":  [
+            "versions-docs.md",
+        ],
+    },
+    glossaries: [
+        External("https://github.com/khonsulabs/.github/raw/main/snippets/glossary.ron")
+    ],
+)

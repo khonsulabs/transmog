@@ -1,2 +1,5 @@
 [workspace]
 members = ["crates/*", "examples/*", "xtask"]
+
+# [patch.crates-io]
+# pot = { path = "../pot/pot" }

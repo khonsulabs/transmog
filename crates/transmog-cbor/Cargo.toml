@@ -1,5 +1,5 @@
 [package]
-name = "transmog-ciborium"
+name = "transmog-cbor"
 version = "0.1.0-dev.1"
 edition = "2021"
 description = "CBOR adaptor for Transmog"

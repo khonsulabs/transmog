@@ -5,7 +5,7 @@ Configuration(
             "pot-docs.md",
             "https://github.com/khonsulabs/.github/raw/main/snippets/readme-footer.md",
         ],
-        "../.crate-docs.md":  [
+        "../src/.crate-docs.md":  [
             "pot-docs.md",
         ],
     },

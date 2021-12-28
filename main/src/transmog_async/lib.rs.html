@@ -437,41 +437,7 @@
 <span id="437">437</span>
 <span id="438">438</span>
 <span id="439">439</span>
-<span id="440">440</span>
-<span id="441">441</span>
-<span id="442">442</span>
-<span id="443">443</span>
-<span id="444">444</span>
-<span id="445">445</span>
-<span id="446">446</span>
-<span id="447">447</span>
-<span id="448">448</span>
-<span id="449">449</span>
-<span id="450">450</span>
-<span id="451">451</span>
-<span id="452">452</span>
-<span id="453">453</span>
-<span id="454">454</span>
-<span id="455">455</span>
-<span id="456">456</span>
-</pre><pre class="rust"><code><span class="doccomment">//! Asynchronous access to a Transmog-encoded item stream.</span>
-<span class="doccomment">//!</span>
-<span class="doccomment">//! This crate enables you to asynchronously read from a Transmog-encoded</span>
-<span class="doccomment">//! stream, or write transmog-encoded values. Most serialization format do not</span>
-<span class="doccomment">//! natively support serializing and deserializing in an asynchronous</span>
-<span class="doccomment">//! environment.</span>
-<span class="doccomment">//!</span>
-<span class="doccomment">//! Transmog works around that on the receive side by buffering received bytes</span>
-<span class="doccomment">//! until a full element&#39;s worth of data has been received, and only then</span>
-<span class="doccomment">//! calling into the underlying [`Format`]. To make this work, it relies on the</span>
-<span class="doccomment">//! sender to prefix each encoded element with its encoded size.</span>
-<span class="doccomment">//!</span>
-<span class="doccomment">//! On the write side, Transmog buffers the serialized values, and</span>
-<span class="doccomment">//! asynchronously sends the resulting bytestream.</span>
-<span class="doccomment">//!</span>
-<span class="doccomment">//! This crate has been adapted from</span>
-<span class="doccomment">//! [`async-bincode`](https://github.com/jonhoo/async-bincode) to generically</span>
-<span class="doccomment">//! support the [`Format`] trait.</span>
+</pre><pre class="rust"><code><span class="attribute">#![<span class="ident">doc</span> <span class="op">=</span> <span class="macro">include_str!</span>(<span class="string">&quot;../.crate-docs.md&quot;</span>)]</span>
 <span class="attribute">#![<span class="ident">forbid</span>(<span class="ident">unsafe_code</span>)]</span>
 <span class="attribute">#![<span class="ident">warn</span>(
     <span class="ident">clippy::cargo</span>,

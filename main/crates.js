@@ -1,1 +1,1 @@
-window.ALL_CRATES = ["transmog","transmog_async","transmog_bincode","transmog_ciborium","transmog_pot","transmog_versions","xtask"];
+window.ALL_CRATES = ["transmog","transmog_async","transmog_bincode","transmog_cbor","transmog_pot","transmog_versions","xtask"];

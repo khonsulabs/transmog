@@ -11,18 +11,26 @@ can not or chose not to support Serde.</p>
 with in a generic fashion. The <a href="https://khonsulabs.github.io/transmog/main/transmog/trait.Format.html"><code>Format</code></a> trait aims to be the universal
 serialization trait for any crate that can serialize from a <code>std::io::Read</code> and
 deserialize from a <code>std::io::Write</code>.</p>
+<h3 id="status-of-this-project" class="section-header"><a href="#status-of-this-project">Status of this project</a></h3>
+<p>We are currently at the experimentation phase of creating this ecosystem. All
+constructive criticism, format requests, and questions are welcome on <a href="https://github.com/khonsulabs/transmog/issues/new">Github
+Issues</a>. We are looking to
+use this crate as a strategy of offering versioned data support in
+<a href="https://github.com/khonsulabs/bonsaidb">BonsaiDb</a> as well as customizable
+serialization support for <a href="https://github.com/khonsulabs/fabruic"><code>Fabruic</code></a>.</p>
 <h3 id="serialization-format-support" class="section-header"><a href="#serialization-format-support">Serialization format support</a></h3>
 <p>We accept pull requests for any moderately stable serialization API.</p>
 <ul>
 <li><a href="https://crates.io/crates/bincode"><code>Bincode</code></a> via <a href="https://crates.io/crates/transmog-bincode"><code>transmog-bincode</code></a></li>
-<li><a href="https://crates.io/crates/ciborium"><code>Ciborium</code></a> via <a href="https://crates.io/crates/transmog-ciborium"><code>transmog-ciborium</code></a></li>
+<li>CBOR via <a href="https://crates.io/crates/transmog-cbor"><code>transmog-cbor</code></a>, powered by
+<a href="https://crates.io/crates/ciborium"><code>Ciborium</code></a>.</li>
 <li><a href="https://crates.io/crates/pot"><code>Pot</code></a> via <a href="https://crates.io/crates/transmog-pot"><code>transmog-pot</code></a></li>
 </ul>
 <h3 id="utilities-for-migrating-data-structures" class="section-header"><a href="#utilities-for-migrating-data-structures">Utilities for migrating data structures</a></h3>
 <p>Sometimes a breaking change is unavoidable. Perhaps, you’ve decided a different
 format is better for your situation. Or, you refactored your structure so much
-that serde’s built-in attributes aren’t enough to help. <a href="https://crates.io/crates/transmog-versions"><code>transmog-versions</code></a> to
-the rescue!</p>
+that serde’s built-in attributes aren’t enough to help.
+<a href="https://crates.io/crates/transmog-versions"><code>transmog-versions</code></a> to the rescue!</p>
 <p>The <a href="https://crates.io/crates/transmog-versions"><code>transmog-versions</code></a> crate provides APIs that allow you
 to treat your currently stored data as “version 0” and provide the logic for
 handling loading each version of data.</p>

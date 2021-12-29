@@ -59,6 +59,7 @@
 <span id="59">59</span>
 <span id="60">60</span>
 <span id="61">61</span>
+<span id="62">62</span>
 </pre><pre class="rust"><code><span class="attribute">#![<span class="ident">doc</span> <span class="op">=</span> <span class="macro">include_str!</span>(<span class="string">&quot;./.crate-docs.md&quot;</span>)]</span>
 <span class="attribute">#![<span class="ident">forbid</span>(<span class="ident">unsafe_code</span>)]</span>
 <span class="attribute">#![<span class="ident">warn</span>(
@@ -78,6 +79,7 @@
 
 <span class="kw">pub</span> <span class="kw">use</span> <span class="ident">ciborium</span>;
 <span class="kw">use</span> <span class="ident">serde</span>::{<span class="ident">Deserialize</span>, <span class="ident">Serialize</span>};
+<span class="kw">pub</span> <span class="kw">use</span> <span class="ident">transmog</span>;
 <span class="kw">use</span> <span class="ident">transmog::Format</span>;
 
 <span class="doccomment">/// CBOR implementor of [`Format`].</span>

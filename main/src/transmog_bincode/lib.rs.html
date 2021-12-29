@@ -1050,6 +1050,7 @@
 <span id="1050">1050</span>
 <span id="1051">1051</span>
 <span id="1052">1052</span>
+<span id="1053">1053</span>
 </pre><pre class="rust"><code><span class="attribute">#![<span class="ident">doc</span> <span class="op">=</span> <span class="macro">include_str!</span>(<span class="string">&quot;./.crate-docs.md&quot;</span>)]</span>
 <span class="attribute">#![<span class="ident">forbid</span>(<span class="ident">unsafe_code</span>)]</span>
 <span class="attribute">#![<span class="ident">warn</span>(
@@ -1077,6 +1078,7 @@
     <span class="ident">DefaultOptions</span>, <span class="ident">Options</span>,
 };
 <span class="kw">use</span> <span class="ident">serde</span>::{<span class="ident">ser::Error</span>, <span class="ident">Deserialize</span>, <span class="ident">Serialize</span>};
+<span class="kw">pub</span> <span class="kw">use</span> <span class="ident">transmog</span>;
 <span class="kw">use</span> <span class="ident">transmog::Format</span>;
 
 <span class="doccomment">/// Bincode implementor of [`Format`] with default options.</span>

@@ -8,7 +8,7 @@
 implement a common set of traits via <a href="https://serde.rs">Serde</a>, but other crates
 can not or chose not to support Serde.</p>
 <p>At the end of the day, however, most serialization formats can be interacted
-with in a generic fashion. The <a href="https://khonsulabs.github.io/transmog/main/transmog/trait.Format.html"><code>Format</code></a> trait aims to be the universal
+with in a generic fashion. The <a href="trait.Format.html"><code>Format</code></a> trait aims to be the universal
 serialization trait for any crate that can serialize from a <code>std::io::Read</code> and
 deserialize from a <code>std::io::Write</code>.</p>
 <h3 id="status-of-this-project" class="section-header"><a href="#status-of-this-project">Status of this project</a></h3>
@@ -38,7 +38,7 @@ handling loading each version of data.</p>
 <h3 id="serializingdeserializing-from-a-futuresstream" class="section-header"><a href="#serializingdeserializing-from-a-futuresstream">Serializing/Deserializing from a <code>futures::Stream</code></a></h3>
 <p>The <a href="https://crates.io/crates/transmog-async"><code>transmog-async</code></a> crate is a fork of
 <a href="https://crates.io/crates/async-bincde"><code>async-bincode</code></a>, altered to support the
-<a href="https://khonsulabs.github.io/transmog/main/transmog/trait.Format.html"><code>Format</code></a> trait.</p>
+<a href="trait.Format.html"><code>Format</code></a> trait.</p>
 </div></details><h2 id="modules" class="section-header"><a href="#modules">Modules</a></h2>
 <div class="item-table"><div class="item-row"><div class="item-left module-item"><a class="mod" href="test_util/index.html" title="transmog::test_util mod">test_util</a></div><div class="item-right docblock-short"><p>Utilities for testing formats. Requires feature <code>test-util</code>.</p>
 </div></div></div><h2 id="traits" class="section-header"><a href="#traits">Traits</a></h2>

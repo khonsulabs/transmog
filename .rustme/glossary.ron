@@ -1,7 +1,7 @@
 {
     "format": (
         default: "https://khonsulabs.github.io/transmog/main/transmog/trait.Format.html",
-        release: "https://docs.rs/transmog/v0.1.0-dev.1/transmog/trait.Format.html",
+        release: "https://docs.rs/transmog/*/transmog/trait.Format.html",
         for_docs: "crate::transmog::Format",
     ),
     "transmog-async": "https://crates.io/crates/transmog-async",

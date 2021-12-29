@@ -7,13 +7,13 @@ repository = "https://github.com/khonsulabs/transmog"
 license = "MIT OR Apache-2.0"
 keywords = ["serialization", "bincode"]
 categories = ["encoding"]
-readme = "../README.md"
+readme = "./README.md"
 
 # See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
 
 [dependencies]
 transmog = { path = "../transmog", version = "0.1.0-dev.1" }
-serde = "1"
+serde = "1.0.124"
 bincode = "1"
 
 [dev-dependencies]

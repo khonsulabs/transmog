@@ -25,7 +25,7 @@ This crate has been adapted from
 support the [`Format`][format] trait.
 
 
-[format]: https://khonsulabs.github.io/transmog/main/transmog/trait.Format.html
+[format]: https://docs.rs/transmog/v0.1.0-dev.1/transmog/trait.Format.html
 ## Open-source Licenses
 
 This project, like all projects from [Khonsu Labs](https://khonsulabs.com/), are

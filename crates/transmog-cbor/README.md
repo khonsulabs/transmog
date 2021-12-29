@@ -18,8 +18,8 @@ let deserialized: u64 = cbor.deserialize(&serialized).unwrap();
 assert_eq!(deserialized, 42);
 ```
 
-[cbor-type]: https://khonsulabs.github.io/transmog/main/transmog_cbor/struct.Cbor.html
-[format]: https://khonsulabs.github.io/transmog/main/transmog/trait.Format.html
+[cbor-type]: https://docs.rs/transmog-cbor/v0.1.0-dev.1/transmog_cbor/struct.Cbor.html
+[format]: https://docs.rs/transmog/v0.1.0-dev.1/transmog/trait.Format.html
 [transmog-async]: https://crates.io/crates/transmog-async
 [transmog-bincode]: https://crates.io/crates/transmog-bincode
 [transmog-cbor]: https://crates.io/crates/transmog-cbor

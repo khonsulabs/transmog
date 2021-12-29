@@ -19,7 +19,7 @@ assert_eq!(deserialized, 42);
 ```
 
 [pot-type]: https://khonsulabs.github.io/transmog/main/transmog_pot/struct.Pot.html
-[format]: https://docs.rs/transmog/v0.1.0-dev.1/transmog/trait.Format.html
+[format]: https://docs.rs/transmog/*/transmog/trait.Format.html
 [transmog-async]: https://crates.io/crates/transmog-async
 [transmog-bincode]: https://crates.io/crates/transmog-bincode
 [transmog-cbor]: https://crates.io/crates/transmog-cbor

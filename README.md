@@ -54,7 +54,7 @@ The [`transmog-async`][transmog-async] crate is a fork of
 [`async-bincode`](https://crates.io/crates/async-bincde), altered to support the
 [`Format`][format] trait.
 
-[format]: https://docs.rs/transmog/v0.1.0-dev.1/transmog/trait.Format.html
+[format]: https://docs.rs/transmog/*/transmog/trait.Format.html
 [transmog-async]: https://crates.io/crates/transmog-async
 [transmog-bincode]: https://crates.io/crates/transmog-bincode
 [transmog-cbor]: https://crates.io/crates/transmog-cbor

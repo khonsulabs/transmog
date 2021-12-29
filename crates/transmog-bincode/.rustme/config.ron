@@ -18,6 +18,7 @@ Configuration(
         {
             "bincode-type": (
                 default: "https://khonsulabs.github.io/transmog/main/transmog_bincode/struct.Bincode.html",
+                release: "https://docs.rs/transmog-bincode/v0.1.0-dev.1/transmog_bincode/struct.Bincode.html",
                 for_docs: "crate::Bincode",
             )
         }

@@ -18,6 +18,7 @@ Configuration(
         {
             "pot-type": (
                 default: "https://khonsulabs.github.io/transmog/main/transmog_pot/struct.Pot.html",
+                release: "https://docs.rs/transmog-pot/v0.1.0-dev.1/transmog_pot/struct.Pot.html",
                 for_docs: "crate::Pot",
             )
         }

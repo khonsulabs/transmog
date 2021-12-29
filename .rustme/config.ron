@@ -29,7 +29,6 @@ Configuration(
         "./glossary.ron",
         {
             "format": (
-                default: "https://khonsulabs.github.io/transmog/main/transmog/trait.Format.html",
                 for_docs: "crate::Format",
             ),
         }

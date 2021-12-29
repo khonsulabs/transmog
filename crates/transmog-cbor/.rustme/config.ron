@@ -18,6 +18,7 @@ Configuration(
         {
             "cbor-type": (
                 default: "https://khonsulabs.github.io/transmog/main/transmog_cbor/struct.Cbor.html",
+                release: "https://docs.rs/transmog-cbor/v0.1.0-dev.1/transmog_cbor/struct.Cbor.html",
                 for_docs: "crate::Cbor",
             )
         }

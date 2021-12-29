@@ -25,6 +25,7 @@ use bincode::{
     DefaultOptions, Options,
 };
 use serde::{ser::Error, Deserialize, Serialize};
+pub use transmog;
 use transmog::Format;
 
 /// Bincode implementor of [`Format`] with default options.

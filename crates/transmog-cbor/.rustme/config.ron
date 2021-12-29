@@ -5,11 +5,21 @@ Configuration(
             "cbor-docs.md",
             "https://github.com/khonsulabs/.github/raw/main/snippets/readme-footer.md",
         ],
-        "../src/.crate-docs.md":  [
-            "cbor-docs.md",
-        ],
+        "../src/.crate-docs.md":  (
+            for_docs: true,
+            sections: [
+                "cbor-docs.md",
+            ],
+        ),
     },
     glossaries: [
-        External("https://github.com/khonsulabs/.github/raw/main/snippets/glossary.ron")
+        "https://github.com/khonsulabs/.github/raw/main/snippets/glossary.ron",
+        "../../../.rustme/glossary.ron",
+        {
+            "cbor-type": (
+                default: "https://khonsulabs.github.io/transmog/main/transmog_cbor/struct.Cbor.html",
+                for_docs: "crate::Cbor",
+            )
+        }
     ],
 )

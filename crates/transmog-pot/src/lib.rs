@@ -17,6 +17,7 @@ use std::io::{Read, Write};
 
 pub use pot;
 use serde::{Deserialize, Serialize};
+pub use transmog;
 use transmog::Format;
 
 /// Pot implementor of [`Format`].

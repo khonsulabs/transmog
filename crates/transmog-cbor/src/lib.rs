@@ -17,6 +17,7 @@ use std::io::{Read, Write};
 
 pub use ciborium;
 use serde::{Deserialize, Serialize};
+pub use transmog;
 use transmog::Format;
 
 /// CBOR implementor of [`Format`].

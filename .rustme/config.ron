@@ -5,9 +5,12 @@ Configuration(
             "docs.md",
             "https://github.com/khonsulabs/.github/raw/main/snippets/readme-footer.md",
         ],
-        "../crates/transmog/src/.crate-docs.md":  [
-            "docs.md",
-        ],
+        "../crates/transmog/src/.crate-docs.md":  (
+            for_docs: true,
+            sections: [
+                "docs.md",
+            ],
+        ),
         "../CONTRIBUTING.md":  [
             "https://github.com/khonsulabs/.github/raw/main/docs/CONTRIBUTING.md",
         ],
@@ -22,6 +25,13 @@ Configuration(
         ],
     },
     glossaries: [
-        External("https://github.com/khonsulabs/.github/raw/main/snippets/glossary.ron")
+        "https://github.com/khonsulabs/.github/raw/main/snippets/glossary.ron",
+        "./glossary.ron",
+        {
+            "format": (
+                default: "https://khonsulabs.github.io/transmog/main/transmog/trait.Format.html",
+                for_docs: "crate::Format",
+            ),
+        }
     ],
 )

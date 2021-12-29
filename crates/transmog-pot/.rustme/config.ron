@@ -5,11 +5,21 @@ Configuration(
             "pot-docs.md",
             "https://github.com/khonsulabs/.github/raw/main/snippets/readme-footer.md",
         ],
-        "../src/.crate-docs.md":  [
-            "pot-docs.md",
-        ],
+        "../src/.crate-docs.md":  (
+            for_docs: true,
+            sections: [
+                "pot-docs.md",
+            ],
+        ),
     },
     glossaries: [
-        External("https://github.com/khonsulabs/.github/raw/main/snippets/glossary.ron")
+        "https://github.com/khonsulabs/.github/raw/main/snippets/glossary.ron",
+        "../../../.rustme/glossary.ron",
+        {
+            "pot-type": (
+                default: "https://khonsulabs.github.io/transmog/main/transmog_pot/struct.Pot.html",
+                for_docs: "crate::Pot",
+            )
+        }
     ],
 )

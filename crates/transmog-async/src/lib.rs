@@ -28,6 +28,7 @@ use std::{
 use futures_core::Stream;
 use futures_sink::Sink;
 use tokio::io::{AsyncRead, ReadBuf};
+pub use transmog;
 use transmog::Format;
 
 pub use self::{

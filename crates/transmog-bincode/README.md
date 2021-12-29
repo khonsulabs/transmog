@@ -35,9 +35,9 @@ assert_eq!(deserialized, 42);
 
 [Bincode][bincode-type] offers all configuration options [bincode][bincode] exposes.
 
-[format]: https://khonsulabs.github.io/transmog/main/transmog/trait.Format.html
 [bincode]: https://github.com/bincode-org/bincode
-[bincode-type]: https://khonsulabs.github.io/transmog/main/transmog_cbor/struct.Cbor.html
+[bincode-type]: https://khonsulabs.github.io/transmog/main/transmog_bincode/struct.Bincode.html
+[format]: https://khonsulabs.github.io/transmog/main/transmog/trait.Format.html
 [transmog-async]: https://crates.io/crates/transmog-async
 [transmog-bincode]: https://crates.io/crates/transmog-bincode
 [transmog-cbor]: https://crates.io/crates/transmog-cbor

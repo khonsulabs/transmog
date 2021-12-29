@@ -19,6 +19,7 @@ use std::{
 };
 
 use ordered_varint::Variable;
+pub use transmog;
 
 const MAGIC_CODE: &[u8] = b"DVer";
 

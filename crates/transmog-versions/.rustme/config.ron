@@ -5,11 +5,15 @@ Configuration(
             "versions-docs.md",
             "https://github.com/khonsulabs/.github/raw/main/snippets/readme-footer.md",
         ],
-        "../src/.crate-docs.md":  [
-            "versions-docs.md",
-        ],
+        "../src/.crate-docs.md":  (
+            for_docs: true,
+            sections: [
+                "versions-docs.md",
+            ],
+        ),
     },
     glossaries: [
-        External("https://github.com/khonsulabs/.github/raw/main/snippets/glossary.ron")
+        "https://github.com/khonsulabs/.github/raw/main/snippets/glossary.ron",
+        "../../../.rustme/glossary.ron",
     ],
 )

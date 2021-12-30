@@ -9,12 +9,12 @@
 This crate provides a [`Format`][format] trait implementation using the [`Cbor`][cbor-type] type:
 
 ```rust
-use transmog::Format;
+use transmog::{Format, OwnedDeserializer};
 use transmog_cbor::Cbor;
 
 let cbor = Cbor::default();
 let serialized = cbor.serialize(&42_u64).unwrap();
-let deserialized: u64 = cbor.deserialize(&serialized).unwrap();
+let deserialized: u64 = cbor.deserialize_owned(&serialized).unwrap();
 assert_eq!(deserialized, 42);
 ```
 

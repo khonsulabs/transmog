@@ -21,7 +21,7 @@ use std::{
 };
 
 use serde::{Deserialize, Serialize};
-use transmog::Format;
+use transmog::{Format, OwnedDeserializer};
 use transmog_bincode::{bincode, Bincode};
 use transmog_pot::{pot, Pot};
 use transmog_versions::UnknownVersion;
@@ -60,7 +60,7 @@ impl From<UserV0> for User {
 //     }
 // }
 
-impl Format<User> for Versions {
+impl Format<'static, User> for Versions {
     type Error = transmog_versions::Error<SerializerErrors>;
 
     fn serialize(&self, value: &User) -> Result<Vec<u8>, Self::Error> {
@@ -78,19 +78,24 @@ impl Format<User> for Versions {
             .map_err(SerializerErrors::from)
             .map_err(transmog_versions::Error::Format)
     }
+}
 
-    fn deserialize(&self, data: &[u8]) -> Result<User, Self::Error> {
+impl OwnedDeserializer<User> for Versions {
+    fn deserialize_owned(&self, data: &[u8]) -> Result<User, Self::Error> {
         let (version, data) = transmog_versions::unwrap_version(data);
         match version {
-            0 => <Bincode as Format<UserV0>>::deserialize(&Bincode::legacy_default(), data)
+            0 => <Bincode as OwnedDeserializer<UserV0>>::deserialize_owned(
+                &Bincode::legacy_default(),
+                data,
+            )
+            .map(User::from)
+            .map_err(SerializerErrors::from)
+            .map_err(transmog_versions::Error::Format),
+            1 => <Pot as OwnedDeserializer<UserV0>>::deserialize_owned(&Pot::default(), data)
                 .map(User::from)
                 .map_err(SerializerErrors::from)
                 .map_err(transmog_versions::Error::Format),
-            1 => <Pot as Format<UserV0>>::deserialize(&Pot::default(), data)
-                .map(User::from)
-                .map_err(SerializerErrors::from)
-                .map_err(transmog_versions::Error::Format),
-            2 => <Pot as Format<User>>::deserialize(&Pot::default(), data)
+            2 => <Pot as OwnedDeserializer<User>>::deserialize_owned(&Pot::default(), data)
                 .map(User::from)
                 .map_err(SerializerErrors::from)
                 .map_err(transmog_versions::Error::Format),
@@ -102,15 +107,18 @@ impl Format<User> for Versions {
 
     fn deserialize_from<R: Read>(&self, reader: R) -> Result<User, Self::Error> {
         transmog_versions::decode(reader, |version, reader| match version {
-            0 => <Bincode as Format<UserV0>>::deserialize_from(&Bincode::legacy_default(), reader)
+            0 => <Bincode as OwnedDeserializer<UserV0>>::deserialize_from(
+                &Bincode::legacy_default(),
+                reader,
+            )
+            .map(User::from)
+            .map_err(SerializerErrors::from)
+            .map_err(transmog_versions::Error::Format),
+            1 => <Pot as OwnedDeserializer<UserV0>>::deserialize_from(&Pot::default(), reader)
                 .map(User::from)
                 .map_err(SerializerErrors::from)
                 .map_err(transmog_versions::Error::Format),
-            1 => <Pot as Format<UserV0>>::deserialize_from(&Pot::default(), reader)
-                .map(User::from)
-                .map_err(SerializerErrors::from)
-                .map_err(transmog_versions::Error::Format),
-            2 => <Pot as Format<User>>::deserialize_from(&Pot::default(), reader)
+            2 => <Pot as OwnedDeserializer<User>>::deserialize_from(&Pot::default(), reader)
                 .map(User::from)
                 .map_err(SerializerErrors::from)
                 .map_err(transmog_versions::Error::Format),
@@ -145,9 +153,9 @@ fn main() -> anyhow::Result<()> {
     let current_data = Versions.serialize(&current_user)?;
 
     // If we pass the bincode-encoded file into
-    assert_eq!(current_user, Versions.deserialize(&v0_data)?);
-    assert_eq!(current_user, Versions.deserialize(&v1_data)?);
-    assert_eq!(current_user, Versions.deserialize(&current_data)?);
+    assert_eq!(current_user, Versions.deserialize_owned(&v0_data)?);
+    assert_eq!(current_user, Versions.deserialize_owned(&v1_data)?);
+    assert_eq!(current_user, Versions.deserialize_owned(&current_data)?);
 
     Ok(())
 }

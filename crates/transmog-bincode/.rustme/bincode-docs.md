@@ -7,12 +7,12 @@
 This crate provides a [`Format`][format] trait implementation using the [`Bincode`][bincode-type] type:
 
 ```rust
-use transmog::Format;
+use transmog::{Format, OwnedDeserializer};
 use transmog_bincode::Bincode;
 
 let bincode = Bincode::default();
 let serialized = bincode.serialize(&42_u64).unwrap();
-let deserialized: u64 = bincode.deserialize(&serialized).unwrap();
+let deserialized: u64 = bincode.deserialize_owned(&serialized).unwrap();
 assert_eq!(deserialized, 42);
 ```
 
@@ -22,12 +22,12 @@ If you're working with existing data that used the global
 serialization/deserialization methods, use `Bincode::legacy_default()` instead:
 
 ```rust
-use transmog::Format;
+use transmog::{Format, OwnedDeserializer};
 use transmog_bincode::Bincode;
 
 let bincode = Bincode::legacy_default();
 let serialized = bincode.serialize(&42_u64).unwrap();
-let deserialized: u64 = bincode.deserialize(&serialized).unwrap();
+let deserialized: u64 = bincode.deserialize_owned(&serialized).unwrap();
 assert_eq!(deserialized, 42);
 ```
 

@@ -58,6 +58,38 @@
 <span id="58">58</span>
 <span id="59">59</span>
 <span id="60">60</span>
+<span id="61">61</span>
+<span id="62">62</span>
+<span id="63">63</span>
+<span id="64">64</span>
+<span id="65">65</span>
+<span id="66">66</span>
+<span id="67">67</span>
+<span id="68">68</span>
+<span id="69">69</span>
+<span id="70">70</span>
+<span id="71">71</span>
+<span id="72">72</span>
+<span id="73">73</span>
+<span id="74">74</span>
+<span id="75">75</span>
+<span id="76">76</span>
+<span id="77">77</span>
+<span id="78">78</span>
+<span id="79">79</span>
+<span id="80">80</span>
+<span id="81">81</span>
+<span id="82">82</span>
+<span id="83">83</span>
+<span id="84">84</span>
+<span id="85">85</span>
+<span id="86">86</span>
+<span id="87">87</span>
+<span id="88">88</span>
+<span id="89">89</span>
+<span id="90">90</span>
+<span id="91">91</span>
+<span id="92">92</span>
 </pre><pre class="rust"><code><span class="attribute">#![<span class="ident">doc</span> <span class="op">=</span> <span class="macro">include_str!</span>(<span class="string">&quot;./.crate-docs.md&quot;</span>)]</span>
 <span class="attribute">#![<span class="ident">forbid</span>(<span class="ident">unsafe_code</span>)]</span>
 <span class="attribute">#![<span class="ident">warn</span>(
@@ -76,9 +108,9 @@
 <span class="kw">use</span> <span class="ident">std::io</span>::{<span class="ident">Read</span>, <span class="ident">Write</span>};
 
 <span class="kw">pub</span> <span class="kw">use</span> <span class="ident">pot</span>;
-<span class="kw">use</span> <span class="ident">serde</span>::{<span class="ident">Deserialize</span>, <span class="ident">Serialize</span>};
+<span class="kw">use</span> <span class="ident">serde</span>::{<span class="ident">de::DeserializeOwned</span>, <span class="ident">Deserialize</span>, <span class="ident">Serialize</span>};
 <span class="kw">pub</span> <span class="kw">use</span> <span class="ident">transmog</span>;
-<span class="kw">use</span> <span class="ident">transmog::Format</span>;
+<span class="kw">use</span> <span class="ident">transmog</span>::{<span class="ident">BorrowedDeserializer</span>, <span class="ident">Format</span>, <span class="ident">OwnedDeserializer</span>};
 
 <span class="doccomment">/// Pot implementor of [`Format`].</span>
 <span class="attribute">#[<span class="ident">derive</span>(<span class="ident">Clone</span>, <span class="ident">Default</span>)]</span>
@@ -90,9 +122,9 @@
     }
 }
 
-<span class="kw">impl</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span> <span class="ident">Format</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span> <span class="kw">for</span> <span class="ident">Pot</span>
+<span class="kw">impl</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span>, <span class="ident">T</span><span class="op">&gt;</span> <span class="ident">Format</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span>, <span class="ident">T</span><span class="op">&gt;</span> <span class="kw">for</span> <span class="ident">Pot</span>
 <span class="kw">where</span>
-    <span class="ident">T</span>: <span class="ident">Serialize</span> <span class="op">+</span> <span class="kw">for</span><span class="op">&lt;</span><span class="lifetime">&#39;de</span><span class="op">&gt;</span> <span class="ident">Deserialize</span><span class="op">&lt;</span><span class="lifetime">&#39;de</span><span class="op">&gt;</span>,
+    <span class="ident">T</span>: <span class="ident">Serialize</span>,
 {
     <span class="kw">type</span> <span class="ident">Error</span> <span class="op">=</span> <span class="ident">pot::Error</span>;
 
@@ -103,11 +135,24 @@
     <span class="kw">fn</span> <span class="ident">serialize_into</span><span class="op">&lt;</span><span class="ident">W</span>: <span class="ident">Write</span><span class="op">&gt;</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">value</span>: <span class="kw-2">&amp;</span><span class="ident">T</span>, <span class="ident">writer</span>: <span class="ident">W</span>) -&gt; <span class="prelude-ty">Result</span><span class="op">&lt;</span>(), <span class="ident"><span class="self">Self</span>::Error</span><span class="op">&gt;</span> {
         <span class="self">self</span>.<span class="number">0</span>.<span class="ident">serialize_into</span>(<span class="ident">value</span>, <span class="ident">writer</span>)
     }
+}
 
-    <span class="kw">fn</span> <span class="ident">deserialize</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">data</span>: <span class="kw-2">&amp;</span>[<span class="ident">u8</span>]) -&gt; <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="ident">T</span>, <span class="ident"><span class="self">Self</span>::Error</span><span class="op">&gt;</span> {
+<span class="kw">impl</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span>, <span class="ident">T</span><span class="op">&gt;</span> <span class="ident">BorrowedDeserializer</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span>, <span class="ident">T</span><span class="op">&gt;</span> <span class="kw">for</span> <span class="ident">Pot</span>
+<span class="kw">where</span>
+    <span class="ident">T</span>: <span class="ident">Serialize</span> <span class="op">+</span> <span class="ident">Deserialize</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span><span class="op">&gt;</span>,
+{
+    <span class="kw">fn</span> <span class="ident">deserialize_borrowed</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">data</span>: <span class="kw-2">&amp;</span><span class="lifetime">&#39;a</span> [<span class="ident">u8</span>]) -&gt; <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="ident">T</span>, <span class="ident"><span class="self">Self</span>::Error</span><span class="op">&gt;</span> {
         <span class="self">self</span>.<span class="number">0</span>.<span class="ident">deserialize</span>(<span class="ident">data</span>)
     }
+}
 
+<span class="kw">impl</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span> <span class="ident">OwnedDeserializer</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span> <span class="kw">for</span> <span class="ident">Pot</span>
+<span class="kw">where</span>
+    <span class="ident">T</span>: <span class="ident">Serialize</span> <span class="op">+</span> <span class="ident">DeserializeOwned</span>,
+{
+    <span class="kw">fn</span> <span class="ident">deserialize_owned</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">data</span>: <span class="kw-2">&amp;</span>[<span class="ident">u8</span>]) -&gt; <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="ident">T</span>, <span class="ident"><span class="self">Self</span>::Error</span><span class="op">&gt;</span> {
+        <span class="self">self</span>.<span class="number">0</span>.<span class="ident">deserialize</span>(<span class="ident">data</span>)
+    }
     <span class="kw">fn</span> <span class="ident">deserialize_from</span><span class="op">&lt;</span><span class="ident">R</span>: <span class="ident">Read</span><span class="op">&gt;</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">reader</span>: <span class="ident">R</span>) -&gt; <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="ident">T</span>, <span class="ident"><span class="self">Self</span>::Error</span><span class="op">&gt;</span> {
         <span class="self">self</span>.<span class="number">0</span>.<span class="ident">deserialize_from</span>(<span class="ident">reader</span>)
     }
@@ -117,6 +162,25 @@
 <span class="kw">fn</span> <span class="ident">format_tests</span>() {
     <span class="ident">transmog::test_util::test_format</span>(<span class="kw-2">&amp;</span><span class="ident">Pot::default</span>());
     <span class="ident">transmog::test_util::test_format</span>(<span class="kw-2">&amp;</span><span class="ident">Pot::from</span>(<span class="ident">pot::Config::default</span>().<span class="ident">allocation_budget</span>(<span class="number">64</span>)));
+}
+
+<span class="attribute">#[<span class="ident">test</span>]</span>
+<span class="kw">fn</span> <span class="ident">borrowed_deserialization</span>() {
+    <span class="kw">use</span> <span class="ident">std::borrow::Cow</span>;
+    <span class="attribute">#[<span class="ident">derive</span>(<span class="ident">Serialize</span>, <span class="ident">Deserialize</span>)]</span>
+    <span class="kw">struct</span> <span class="ident">Test</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span><span class="op">&gt;</span> {
+        <span class="attribute">#[<span class="ident">serde</span>(<span class="ident">borrow</span>)]</span>
+        <span class="ident">value</span>: <span class="ident">Cow</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span>, <span class="ident">str</span><span class="op">&gt;</span>,
+    }
+    <span class="kw">let</span> <span class="ident">pot</span> <span class="op">=</span> <span class="ident">Pot::default</span>();
+    <span class="kw">let</span> <span class="ident">value</span>: <span class="ident">Test</span><span class="op">&lt;</span><span class="lifetime">&#39;static</span><span class="op">&gt;</span> <span class="op">=</span> <span class="ident">Test</span> {
+        <span class="ident">value</span>: <span class="ident">Cow::Owned</span>(<span class="ident">String::from</span>(<span class="string">&quot;hello&quot;</span>)),
+    };
+    <span class="kw">let</span> <span class="ident">serialized</span> <span class="op">=</span> <span class="ident">pot</span>.<span class="ident">serialize</span>(<span class="kw-2">&amp;</span><span class="ident">value</span>).<span class="ident">unwrap</span>();
+    <span class="kw">let</span> <span class="ident">pot</span> <span class="op">=</span> <span class="ident">Pot::default</span>();
+    <span class="kw">let</span> <span class="ident">deserialized</span>: <span class="ident">Test</span><span class="op">&lt;</span><span class="lifetime">&#39;_</span><span class="op">&gt;</span> <span class="op">=</span> <span class="ident">pot</span>.<span class="ident">deserialize_borrowed</span>(<span class="kw-2">&amp;</span><span class="ident">serialized</span>).<span class="ident">unwrap</span>();
+    <span class="macro">assert_eq!</span>(<span class="ident">deserialized</span>.<span class="ident">value</span>, <span class="string">&quot;hello&quot;</span>);
+    <span class="macro">assert!</span>(<span class="macro">matches!</span>(<span class="ident">deserialized</span>.<span class="ident">value</span>, <span class="ident">Cow::Borrowed</span>(<span class="kw">_</span>)));
 }
 </code></pre></div>
 </section><section id="search" class="content hidden"></section><div id="rustdoc-vars" data-root-path="../../" data-current-crate="transmog_pot" data-search-index-js="../../search-index.js" data-search-js="../../search.js"></div>

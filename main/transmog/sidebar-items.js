@@ -1,1 +1,1 @@
-initSidebarItems({"mod":[["test_util","Utilities for testing formats. Requires feature `test-util`."]],"trait":[["Format","A serialization format."]]});
+initSidebarItems({"mod":[["test_util","Utilities for testing formats. Requires feature `test-util`."]],"trait":[["BorrowedDeserializer","A deserializer that borrows data when possible."],["Format","A serialization format."],["OwnedDeserializer","A deserializer that does not attempt to borrow data when deserializing."]]});

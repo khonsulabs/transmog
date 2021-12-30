@@ -1051,6 +1051,59 @@
 <span id="1051">1051</span>
 <span id="1052">1052</span>
 <span id="1053">1053</span>
+<span id="1054">1054</span>
+<span id="1055">1055</span>
+<span id="1056">1056</span>
+<span id="1057">1057</span>
+<span id="1058">1058</span>
+<span id="1059">1059</span>
+<span id="1060">1060</span>
+<span id="1061">1061</span>
+<span id="1062">1062</span>
+<span id="1063">1063</span>
+<span id="1064">1064</span>
+<span id="1065">1065</span>
+<span id="1066">1066</span>
+<span id="1067">1067</span>
+<span id="1068">1068</span>
+<span id="1069">1069</span>
+<span id="1070">1070</span>
+<span id="1071">1071</span>
+<span id="1072">1072</span>
+<span id="1073">1073</span>
+<span id="1074">1074</span>
+<span id="1075">1075</span>
+<span id="1076">1076</span>
+<span id="1077">1077</span>
+<span id="1078">1078</span>
+<span id="1079">1079</span>
+<span id="1080">1080</span>
+<span id="1081">1081</span>
+<span id="1082">1082</span>
+<span id="1083">1083</span>
+<span id="1084">1084</span>
+<span id="1085">1085</span>
+<span id="1086">1086</span>
+<span id="1087">1087</span>
+<span id="1088">1088</span>
+<span id="1089">1089</span>
+<span id="1090">1090</span>
+<span id="1091">1091</span>
+<span id="1092">1092</span>
+<span id="1093">1093</span>
+<span id="1094">1094</span>
+<span id="1095">1095</span>
+<span id="1096">1096</span>
+<span id="1097">1097</span>
+<span id="1098">1098</span>
+<span id="1099">1099</span>
+<span id="1100">1100</span>
+<span id="1101">1101</span>
+<span id="1102">1102</span>
+<span id="1103">1103</span>
+<span id="1104">1104</span>
+<span id="1105">1105</span>
+<span id="1106">1106</span>
 </pre><pre class="rust"><code><span class="attribute">#![<span class="ident">doc</span> <span class="op">=</span> <span class="macro">include_str!</span>(<span class="string">&quot;./.crate-docs.md&quot;</span>)]</span>
 <span class="attribute">#![<span class="ident">forbid</span>(<span class="ident">unsafe_code</span>)]</span>
 <span class="attribute">#![<span class="ident">warn</span>(
@@ -1077,9 +1130,9 @@
     },
     <span class="ident">DefaultOptions</span>, <span class="ident">Options</span>,
 };
-<span class="kw">use</span> <span class="ident">serde</span>::{<span class="ident">ser::Error</span>, <span class="ident">Deserialize</span>, <span class="ident">Serialize</span>};
+<span class="kw">use</span> <span class="ident">serde</span>::{<span class="ident">de::DeserializeOwned</span>, <span class="ident">ser::Error</span>, <span class="ident">Deserialize</span>, <span class="ident">Serialize</span>};
 <span class="kw">pub</span> <span class="kw">use</span> <span class="ident">transmog</span>;
-<span class="kw">use</span> <span class="ident">transmog::Format</span>;
+<span class="kw">use</span> <span class="ident">transmog</span>::{<span class="ident">BorrowedDeserializer</span>, <span class="ident">Format</span>, <span class="ident">OwnedDeserializer</span>};
 
 <span class="doccomment">/// Bincode implementor of [`Format`] with default options.</span>
 <span class="attribute">#[<span class="ident">derive</span>(<span class="ident">Clone</span>)]</span>
@@ -1695,9 +1748,9 @@
     ),
 }
 
-<span class="kw">impl</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span> <span class="ident">Format</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span> <span class="kw">for</span> <span class="ident">Bincode</span>
+<span class="kw">impl</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span>, <span class="ident">T</span><span class="op">&gt;</span> <span class="ident">Format</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span>, <span class="ident">T</span><span class="op">&gt;</span> <span class="kw">for</span> <span class="ident">Bincode</span>
 <span class="kw">where</span>
-    <span class="ident">T</span>: <span class="ident">Serialize</span> <span class="op">+</span> <span class="kw">for</span><span class="op">&lt;</span><span class="lifetime">&#39;de</span><span class="op">&gt;</span> <span class="ident">Deserialize</span><span class="op">&lt;</span><span class="lifetime">&#39;de</span><span class="op">&gt;</span>,
+    <span class="ident">T</span>: <span class="ident">Serialize</span>,
 {
     <span class="kw">type</span> <span class="ident">Error</span> <span class="op">=</span> <span class="ident">bincode::Error</span>;
 
@@ -1712,19 +1765,33 @@
     <span class="kw">fn</span> <span class="ident">serialize_into</span><span class="op">&lt;</span><span class="ident">W</span>: <span class="ident">Write</span><span class="op">&gt;</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">value</span>: <span class="kw-2">&amp;</span><span class="ident">T</span>, <span class="ident">writer</span>: <span class="ident">W</span>) -&gt; <span class="prelude-ty">Result</span><span class="op">&lt;</span>(), <span class="ident"><span class="self">Self</span>::Error</span><span class="op">&gt;</span> {
         <span class="ident">BincodeOptions::from</span>(<span class="self">self</span>).<span class="ident">serialize_into</span>(<span class="ident">value</span>, <span class="ident">writer</span>)
     }
+}
 
-    <span class="kw">fn</span> <span class="ident">deserialize</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">data</span>: <span class="kw-2">&amp;</span>[<span class="ident">u8</span>]) -&gt; <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="ident">T</span>, <span class="ident"><span class="self">Self</span>::Error</span><span class="op">&gt;</span> {
-        <span class="ident">BincodeOptions::from</span>(<span class="self">self</span>).<span class="ident">deserialize</span>(<span class="ident">data</span>)
-    }
-
-    <span class="kw">fn</span> <span class="ident">deserialize_from</span><span class="op">&lt;</span><span class="ident">R</span>: <span class="ident">Read</span><span class="op">&gt;</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">reader</span>: <span class="ident">R</span>) -&gt; <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="ident">T</span>, <span class="ident"><span class="self">Self</span>::Error</span><span class="op">&gt;</span> {
-        <span class="ident">BincodeOptions::from</span>(<span class="self">self</span>).<span class="ident">deserialize_from</span>(<span class="ident">reader</span>)
+<span class="kw">impl</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span>, <span class="ident">T</span><span class="op">&gt;</span> <span class="ident">BorrowedDeserializer</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span>, <span class="ident">T</span><span class="op">&gt;</span> <span class="kw">for</span> <span class="ident">Bincode</span>
+<span class="kw">where</span>
+    <span class="ident">T</span>: <span class="ident">Serialize</span> <span class="op">+</span> <span class="ident">Deserialize</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span><span class="op">&gt;</span>,
+{
+    <span class="kw">fn</span> <span class="ident">deserialize_borrowed</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">data</span>: <span class="kw-2">&amp;</span><span class="lifetime">&#39;a</span> [<span class="ident">u8</span>]) -&gt; <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="ident">T</span>, <span class="ident"><span class="self">Self</span>::Error</span><span class="op">&gt;</span> {
+        <span class="ident">BincodeOptions::from</span>(<span class="self">self</span>).<span class="ident">deserialize_borrowed</span>(<span class="ident">data</span>)
     }
 }
 
-<span class="kw">impl</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span> <span class="ident">Format</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span> <span class="kw">for</span> <span class="ident">BincodeOptions</span>
+<span class="kw">impl</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span> <span class="ident">OwnedDeserializer</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span> <span class="kw">for</span> <span class="ident">Bincode</span>
 <span class="kw">where</span>
-    <span class="ident">T</span>: <span class="ident">Serialize</span> <span class="op">+</span> <span class="kw">for</span><span class="op">&lt;</span><span class="lifetime">&#39;de</span><span class="op">&gt;</span> <span class="ident">Deserialize</span><span class="op">&lt;</span><span class="lifetime">&#39;de</span><span class="op">&gt;</span>,
+    <span class="ident">T</span>: <span class="ident">Serialize</span> <span class="op">+</span> <span class="ident">DeserializeOwned</span>,
+{
+    <span class="kw">fn</span> <span class="ident">deserialize_from</span><span class="op">&lt;</span><span class="ident">R</span>: <span class="ident">Read</span><span class="op">&gt;</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">reader</span>: <span class="ident">R</span>) -&gt; <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="ident">T</span>, <span class="ident"><span class="self">Self</span>::Error</span><span class="op">&gt;</span> {
+        <span class="ident">BincodeOptions::from</span>(<span class="self">self</span>).<span class="ident">deserialize_from</span>(<span class="ident">reader</span>)
+    }
+
+    <span class="kw">fn</span> <span class="ident">deserialize_owned</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">data</span>: <span class="kw-2">&amp;</span>[<span class="ident">u8</span>]) -&gt; <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="ident">T</span>, <span class="ident"><span class="self">Self</span>::Error</span><span class="op">&gt;</span> {
+        <span class="ident">BincodeOptions::from</span>(<span class="self">self</span>).<span class="ident">deserialize_owned</span>(<span class="ident">data</span>)
+    }
+}
+
+<span class="kw">impl</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span>, <span class="ident">T</span><span class="op">&gt;</span> <span class="ident">Format</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span>, <span class="ident">T</span><span class="op">&gt;</span> <span class="kw">for</span> <span class="ident">BincodeOptions</span>
+<span class="kw">where</span>
+    <span class="ident">T</span>: <span class="ident">Serialize</span>,
 {
     <span class="kw">type</span> <span class="ident">Error</span> <span class="op">=</span> <span class="ident">bincode::Error</span>;
 
@@ -1863,8 +1930,47 @@
             }
         }
     }
+}
 
-    <span class="kw">fn</span> <span class="ident">deserialize</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">data</span>: <span class="kw-2">&amp;</span>[<span class="ident">u8</span>]) -&gt; <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="ident">T</span>, <span class="ident"><span class="self">Self</span>::Error</span><span class="op">&gt;</span> {
+<span class="kw">impl</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span>, <span class="ident">T</span><span class="op">&gt;</span> <span class="ident">BorrowedDeserializer</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span>, <span class="ident">T</span><span class="op">&gt;</span> <span class="kw">for</span> <span class="ident">BincodeOptions</span>
+<span class="kw">where</span>
+    <span class="ident">T</span>: <span class="ident">Serialize</span> <span class="op">+</span> <span class="ident">Deserialize</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span><span class="op">&gt;</span>,
+{
+    <span class="kw">fn</span> <span class="ident">deserialize_borrowed</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">data</span>: <span class="kw-2">&amp;</span><span class="lifetime">&#39;a</span> [<span class="ident">u8</span>]) -&gt; <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="ident">T</span>, <span class="ident"><span class="self">Self</span>::Error</span><span class="op">&gt;</span> {
+        <span class="kw">match</span> <span class="self">self</span> {
+            <span class="ident">BincodeOptions::UnlimitedLittleVarintReject</span>(<span class="ident">options</span>) =&gt; <span class="ident">options</span>.<span class="ident">deserialize</span>(<span class="ident">data</span>),
+            <span class="ident">BincodeOptions::UnlimitedLittleVarintAllow</span>(<span class="ident">options</span>) =&gt; <span class="ident">options</span>.<span class="ident">deserialize</span>(<span class="ident">data</span>),
+            <span class="ident">BincodeOptions::UnlimitedLittleFixintReject</span>(<span class="ident">options</span>) =&gt; <span class="ident">options</span>.<span class="ident">deserialize</span>(<span class="ident">data</span>),
+            <span class="ident">BincodeOptions::UnlimitedLittleFixintAllow</span>(<span class="ident">options</span>) =&gt; <span class="ident">options</span>.<span class="ident">deserialize</span>(<span class="ident">data</span>),
+            <span class="ident">BincodeOptions::UnlimitedBigVarintReject</span>(<span class="ident">options</span>) =&gt; <span class="ident">options</span>.<span class="ident">deserialize</span>(<span class="ident">data</span>),
+            <span class="ident">BincodeOptions::UnlimitedBigVarintAllow</span>(<span class="ident">options</span>) =&gt; <span class="ident">options</span>.<span class="ident">deserialize</span>(<span class="ident">data</span>),
+            <span class="ident">BincodeOptions::UnlimitedBigFixintReject</span>(<span class="ident">options</span>) =&gt; <span class="ident">options</span>.<span class="ident">deserialize</span>(<span class="ident">data</span>),
+            <span class="ident">BincodeOptions::UnlimitedBigFixintAllow</span>(<span class="ident">options</span>) =&gt; <span class="ident">options</span>.<span class="ident">deserialize</span>(<span class="ident">data</span>),
+            <span class="ident">BincodeOptions::UnlimitedNativeVarintReject</span>(<span class="ident">options</span>) =&gt; <span class="ident">options</span>.<span class="ident">deserialize</span>(<span class="ident">data</span>),
+            <span class="ident">BincodeOptions::UnlimitedNativeVarintAllow</span>(<span class="ident">options</span>) =&gt; <span class="ident">options</span>.<span class="ident">deserialize</span>(<span class="ident">data</span>),
+            <span class="ident">BincodeOptions::UnlimitedNativeFixintReject</span>(<span class="ident">options</span>) =&gt; <span class="ident">options</span>.<span class="ident">deserialize</span>(<span class="ident">data</span>),
+            <span class="ident">BincodeOptions::UnlimitedNativeFixintAllow</span>(<span class="ident">options</span>) =&gt; <span class="ident">options</span>.<span class="ident">deserialize</span>(<span class="ident">data</span>),
+            <span class="ident">BincodeOptions::LimitedLittleVarintReject</span>(<span class="ident">options</span>) =&gt; <span class="ident">options</span>.<span class="ident">deserialize</span>(<span class="ident">data</span>),
+            <span class="ident">BincodeOptions::LimitedLittleVarintAllow</span>(<span class="ident">options</span>) =&gt; <span class="ident">options</span>.<span class="ident">deserialize</span>(<span class="ident">data</span>),
+            <span class="ident">BincodeOptions::LimitedLittleFixintReject</span>(<span class="ident">options</span>) =&gt; <span class="ident">options</span>.<span class="ident">deserialize</span>(<span class="ident">data</span>),
+            <span class="ident">BincodeOptions::LimitedLittleFixintAllow</span>(<span class="ident">options</span>) =&gt; <span class="ident">options</span>.<span class="ident">deserialize</span>(<span class="ident">data</span>),
+            <span class="ident">BincodeOptions::LimitedBigVarintReject</span>(<span class="ident">options</span>) =&gt; <span class="ident">options</span>.<span class="ident">deserialize</span>(<span class="ident">data</span>),
+            <span class="ident">BincodeOptions::LimitedBigVarintAllow</span>(<span class="ident">options</span>) =&gt; <span class="ident">options</span>.<span class="ident">deserialize</span>(<span class="ident">data</span>),
+            <span class="ident">BincodeOptions::LimitedBigFixintReject</span>(<span class="ident">options</span>) =&gt; <span class="ident">options</span>.<span class="ident">deserialize</span>(<span class="ident">data</span>),
+            <span class="ident">BincodeOptions::LimitedBigFixintAllow</span>(<span class="ident">options</span>) =&gt; <span class="ident">options</span>.<span class="ident">deserialize</span>(<span class="ident">data</span>),
+            <span class="ident">BincodeOptions::LimitedNativeVarintReject</span>(<span class="ident">options</span>) =&gt; <span class="ident">options</span>.<span class="ident">deserialize</span>(<span class="ident">data</span>),
+            <span class="ident">BincodeOptions::LimitedNativeVarintAllow</span>(<span class="ident">options</span>) =&gt; <span class="ident">options</span>.<span class="ident">deserialize</span>(<span class="ident">data</span>),
+            <span class="ident">BincodeOptions::LimitedNativeFixintReject</span>(<span class="ident">options</span>) =&gt; <span class="ident">options</span>.<span class="ident">deserialize</span>(<span class="ident">data</span>),
+            <span class="ident">BincodeOptions::LimitedNativeFixintAllow</span>(<span class="ident">options</span>) =&gt; <span class="ident">options</span>.<span class="ident">deserialize</span>(<span class="ident">data</span>),
+        }
+    }
+}
+
+<span class="kw">impl</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span> <span class="ident">OwnedDeserializer</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span> <span class="kw">for</span> <span class="ident">BincodeOptions</span>
+<span class="kw">where</span>
+    <span class="ident">T</span>: <span class="ident">Serialize</span> <span class="op">+</span> <span class="ident">DeserializeOwned</span>,
+{
+    <span class="kw">fn</span> <span class="ident">deserialize_owned</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">data</span>: <span class="kw-2">&amp;</span>[<span class="ident">u8</span>]) -&gt; <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="ident">T</span>, <span class="ident"><span class="self">Self</span>::Error</span><span class="op">&gt;</span> {
         <span class="kw">match</span> <span class="self">self</span> {
             <span class="ident">BincodeOptions::UnlimitedLittleVarintReject</span>(<span class="ident">options</span>) =&gt; <span class="ident">options</span>.<span class="ident">deserialize</span>(<span class="ident">data</span>),
             <span class="ident">BincodeOptions::UnlimitedLittleVarintAllow</span>(<span class="ident">options</span>) =&gt; <span class="ident">options</span>.<span class="ident">deserialize</span>(<span class="ident">data</span>),

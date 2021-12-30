@@ -438,6 +438,7 @@
 <span id="438">438</span>
 <span id="439">439</span>
 <span id="440">440</span>
+<span id="441">441</span>
 </pre><pre class="rust"><code><span class="attribute">#![<span class="ident">doc</span> <span class="op">=</span> <span class="macro">include_str!</span>(<span class="string">&quot;./.crate-docs.md&quot;</span>)]</span>
 <span class="attribute">#![<span class="ident">forbid</span>(<span class="ident">unsafe_code</span>)]</span>
 <span class="attribute">#![<span class="ident">warn</span>(
@@ -498,7 +499,7 @@
     <span class="doccomment">/// Sets `T` as the type for both sending and receiving.</span>
     <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">sends_and_receives</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span>(<span class="self">self</span>) -&gt; <span class="ident">Builder</span><span class="op">&lt;</span><span class="ident">T</span>, <span class="ident">T</span>, <span class="ident">TStream</span>, <span class="ident">TFormat</span><span class="op">&gt;</span>
     <span class="kw">where</span>
-        <span class="ident">TFormat</span>: <span class="ident">Format</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span>,
+        <span class="ident">TFormat</span>: <span class="ident">Format</span><span class="op">&lt;</span><span class="lifetime">&#39;static</span>, <span class="ident">T</span><span class="op">&gt;</span>,
     {
         <span class="ident">Builder</span> {
             <span class="ident">stream</span>: <span class="self">self</span>.<span class="ident">stream</span>,
@@ -512,7 +513,7 @@
     <span class="doccomment">/// Sets `T` as the type of data that is written to this stream.</span>
     <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">sends</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span>(<span class="self">self</span>) -&gt; <span class="ident">Builder</span><span class="op">&lt;</span><span class="ident">TReads</span>, <span class="ident">T</span>, <span class="ident">TStream</span>, <span class="ident">TFormat</span><span class="op">&gt;</span>
     <span class="kw">where</span>
-        <span class="ident">TFormat</span>: <span class="ident">Format</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span>,
+        <span class="ident">TFormat</span>: <span class="ident">Format</span><span class="op">&lt;</span><span class="lifetime">&#39;static</span>, <span class="ident">T</span><span class="op">&gt;</span>,
     {
         <span class="ident">Builder</span> {
             <span class="ident">stream</span>: <span class="self">self</span>.<span class="ident">stream</span>,
@@ -526,7 +527,7 @@
     <span class="doccomment">/// Sets `T` as the type of data that is read from this stream.</span>
     <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">receives</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span>(<span class="self">self</span>) -&gt; <span class="ident">Builder</span><span class="op">&lt;</span><span class="ident">T</span>, <span class="ident">TWrites</span>, <span class="ident">TStream</span>, <span class="ident">TFormat</span><span class="op">&gt;</span>
     <span class="kw">where</span>
-        <span class="ident">TFormat</span>: <span class="ident">Format</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span>,
+        <span class="ident">TFormat</span>: <span class="ident">Format</span><span class="op">&lt;</span><span class="lifetime">&#39;static</span>, <span class="ident">T</span><span class="op">&gt;</span>,
     {
         <span class="ident">Builder</span> {
             <span class="ident">stream</span>: <span class="self">self</span>.<span class="ident">stream</span>,
@@ -759,7 +760,7 @@
         <span class="ident">TReads</span>,
         <span class="ident">TFormat</span>,
     <span class="op">&gt;</span>: <span class="ident">Stream</span><span class="op">&lt;</span><span class="ident">Item</span> <span class="op">=</span> <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="ident">TReads</span>, <span class="ident">TFormat::Error</span><span class="op">&gt;</span><span class="op">&gt;</span>,
-    <span class="ident">TFormat</span>: <span class="ident">Format</span><span class="op">&lt;</span><span class="ident">TWrites</span><span class="op">&gt;</span>,
+    <span class="ident">TFormat</span>: <span class="ident">Format</span><span class="op">&lt;</span><span class="lifetime">&#39;static</span>, <span class="ident">TWrites</span><span class="op">&gt;</span>,
 {
     <span class="kw">type</span> <span class="ident">Item</span> <span class="op">=</span> <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="ident">TReads</span>, <span class="ident">TFormat::Error</span><span class="op">&gt;</span>;
     <span class="kw">fn</span> <span class="ident">poll_next</span>(<span class="kw-2">mut</span> <span class="self">self</span>: <span class="ident">Pin</span><span class="op">&lt;</span><span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">Self</span><span class="op">&gt;</span>, <span class="ident">cx</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">Context</span><span class="op">&lt;</span><span class="lifetime">&#39;_</span><span class="op">&gt;</span>) -&gt; <span class="ident">Poll</span><span class="op">&lt;</span><span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident"><span class="self">Self</span>::Item</span><span class="op">&gt;</span><span class="op">&gt;</span> {
@@ -772,7 +773,7 @@
 <span class="kw">where</span>
     <span class="ident">TStream</span>: <span class="ident">Unpin</span>,
     <span class="ident">TransmogWriter</span><span class="op">&lt;</span><span class="ident">TStream</span>, <span class="ident">TWrites</span>, <span class="ident">TDestination</span>, <span class="ident">TFormat</span><span class="op">&gt;</span>: <span class="ident">Sink</span><span class="op">&lt;</span><span class="ident">TWrites</span>, <span class="ident">Error</span> <span class="op">=</span> <span class="ident">TFormat::Error</span><span class="op">&gt;</span>,
-    <span class="ident">TFormat</span>: <span class="ident">Format</span><span class="op">&lt;</span><span class="ident">TWrites</span><span class="op">&gt;</span>,
+    <span class="ident">TFormat</span>: <span class="ident">Format</span><span class="op">&lt;</span><span class="lifetime">&#39;static</span>, <span class="ident">TWrites</span><span class="op">&gt;</span>,
 {
     <span class="kw">type</span> <span class="ident">Error</span> <span class="op">=</span> <span class="ident">TFormat::Error</span>;
 
@@ -796,6 +797,7 @@
 <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">test</span>)]</span>
 <span class="kw">mod</span> <span class="ident">tests</span> {
     <span class="kw">use</span> <span class="ident">futures::prelude</span>::<span class="kw-2">*</span>;
+    <span class="kw">use</span> <span class="ident">transmog::OwnedDeserializer</span>;
     <span class="kw">use</span> <span class="ident">transmog_bincode::Bincode</span>;
     <span class="kw">use</span> <span class="ident">transmog_pot::Pot</span>;
 
@@ -803,7 +805,7 @@
 
     <span class="kw">async</span> <span class="kw">fn</span> <span class="ident">it_works</span><span class="op">&lt;</span>
         <span class="ident">T</span>: <span class="ident">std::fmt::Debug</span> <span class="op">+</span> <span class="ident">Clone</span> <span class="op">+</span> <span class="ident">PartialEq</span> <span class="op">+</span> <span class="ident">Send</span>,
-        <span class="ident">TFormat</span>: <span class="ident">Format</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span> <span class="op">+</span> <span class="ident">Clone</span> <span class="op">+</span> <span class="lifetime">&#39;static</span>,
+        <span class="ident">TFormat</span>: <span class="ident">Format</span><span class="op">&lt;</span><span class="lifetime">&#39;static</span>, <span class="ident">T</span><span class="op">&gt;</span> <span class="op">+</span> <span class="ident">OwnedDeserializer</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span> <span class="op">+</span> <span class="ident">Clone</span> <span class="op">+</span> <span class="lifetime">&#39;static</span>,
     <span class="op">&gt;</span>(
         <span class="ident">format</span>: <span class="ident">TFormat</span>,
         <span class="ident">values</span>: <span class="kw-2">&amp;</span>[<span class="ident">T</span>],

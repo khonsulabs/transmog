@@ -16,22 +16,31 @@
 use std::io::{Read, Write};
 
 pub use ciborium;
-use serde::{Deserialize, Serialize};
+use serde::{de::DeserializeOwned, Serialize};
 pub use transmog;
-use transmog::Format;
+use transmog::{Format, OwnedDeserializer};
 
 /// CBOR implementor of [`Format`].
 #[derive(Clone, Default)]
 pub struct Cbor;
 
-impl<T> Format<T> for Cbor
+impl<'a, T> Format<'a, T> for Cbor
 where
-    T: Serialize + for<'de> Deserialize<'de>,
+    T: Serialize,
 {
     type Error = Error;
 
     fn serialize_into<W: Write>(&self, value: &T, writer: W) -> Result<(), Self::Error> {
         ciborium::ser::into_writer(value, writer).map_err(Error::from)
+    }
+}
+
+impl<T> OwnedDeserializer<T> for Cbor
+where
+    T: Serialize + DeserializeOwned,
+{
+    fn deserialize_owned(&self, data: &[u8]) -> Result<T, Self::Error> {
+        self.deserialize_from(data)
     }
 
     fn deserialize_from<R: Read>(&self, reader: R) -> Result<T, Self::Error> {

@@ -24,9 +24,9 @@ use bincode::{
     },
     DefaultOptions, Options,
 };
-use serde::{ser::Error, Deserialize, Serialize};
+use serde::{de::DeserializeOwned, ser::Error, Deserialize, Serialize};
 pub use transmog;
-use transmog::Format;
+use transmog::{BorrowedDeserializer, Format, OwnedDeserializer};
 
 /// Bincode implementor of [`Format`] with default options.
 #[derive(Clone)]
@@ -642,9 +642,9 @@ enum BincodeOptions {
     ),
 }
 
-impl<T> Format<T> for Bincode
+impl<'a, T> Format<'a, T> for Bincode
 where
-    T: Serialize + for<'de> Deserialize<'de>,
+    T: Serialize,
 {
     type Error = bincode::Error;
 
@@ -659,19 +659,33 @@ where
     fn serialize_into<W: Write>(&self, value: &T, writer: W) -> Result<(), Self::Error> {
         BincodeOptions::from(self).serialize_into(value, writer)
     }
+}
 
-    fn deserialize(&self, data: &[u8]) -> Result<T, Self::Error> {
-        BincodeOptions::from(self).deserialize(data)
-    }
-
-    fn deserialize_from<R: Read>(&self, reader: R) -> Result<T, Self::Error> {
-        BincodeOptions::from(self).deserialize_from(reader)
+impl<'a, T> BorrowedDeserializer<'a, T> for Bincode
+where
+    T: Serialize + Deserialize<'a>,
+{
+    fn deserialize_borrowed(&self, data: &'a [u8]) -> Result<T, Self::Error> {
+        BincodeOptions::from(self).deserialize_borrowed(data)
     }
 }
 
-impl<T> Format<T> for BincodeOptions
+impl<T> OwnedDeserializer<T> for Bincode
 where
-    T: Serialize + for<'de> Deserialize<'de>,
+    T: Serialize + DeserializeOwned,
+{
+    fn deserialize_from<R: Read>(&self, reader: R) -> Result<T, Self::Error> {
+        BincodeOptions::from(self).deserialize_from(reader)
+    }
+
+    fn deserialize_owned(&self, data: &[u8]) -> Result<T, Self::Error> {
+        BincodeOptions::from(self).deserialize_owned(data)
+    }
+}
+
+impl<'a, T> Format<'a, T> for BincodeOptions
+where
+    T: Serialize,
 {
     type Error = bincode::Error;
 
@@ -810,8 +824,47 @@ where
             }
         }
     }
+}
 
-    fn deserialize(&self, data: &[u8]) -> Result<T, Self::Error> {
+impl<'a, T> BorrowedDeserializer<'a, T> for BincodeOptions
+where
+    T: Serialize + Deserialize<'a>,
+{
+    fn deserialize_borrowed(&self, data: &'a [u8]) -> Result<T, Self::Error> {
+        match self {
+            BincodeOptions::UnlimitedLittleVarintReject(options) => options.deserialize(data),
+            BincodeOptions::UnlimitedLittleVarintAllow(options) => options.deserialize(data),
+            BincodeOptions::UnlimitedLittleFixintReject(options) => options.deserialize(data),
+            BincodeOptions::UnlimitedLittleFixintAllow(options) => options.deserialize(data),
+            BincodeOptions::UnlimitedBigVarintReject(options) => options.deserialize(data),
+            BincodeOptions::UnlimitedBigVarintAllow(options) => options.deserialize(data),
+            BincodeOptions::UnlimitedBigFixintReject(options) => options.deserialize(data),
+            BincodeOptions::UnlimitedBigFixintAllow(options) => options.deserialize(data),
+            BincodeOptions::UnlimitedNativeVarintReject(options) => options.deserialize(data),
+            BincodeOptions::UnlimitedNativeVarintAllow(options) => options.deserialize(data),
+            BincodeOptions::UnlimitedNativeFixintReject(options) => options.deserialize(data),
+            BincodeOptions::UnlimitedNativeFixintAllow(options) => options.deserialize(data),
+            BincodeOptions::LimitedLittleVarintReject(options) => options.deserialize(data),
+            BincodeOptions::LimitedLittleVarintAllow(options) => options.deserialize(data),
+            BincodeOptions::LimitedLittleFixintReject(options) => options.deserialize(data),
+            BincodeOptions::LimitedLittleFixintAllow(options) => options.deserialize(data),
+            BincodeOptions::LimitedBigVarintReject(options) => options.deserialize(data),
+            BincodeOptions::LimitedBigVarintAllow(options) => options.deserialize(data),
+            BincodeOptions::LimitedBigFixintReject(options) => options.deserialize(data),
+            BincodeOptions::LimitedBigFixintAllow(options) => options.deserialize(data),
+            BincodeOptions::LimitedNativeVarintReject(options) => options.deserialize(data),
+            BincodeOptions::LimitedNativeVarintAllow(options) => options.deserialize(data),
+            BincodeOptions::LimitedNativeFixintReject(options) => options.deserialize(data),
+            BincodeOptions::LimitedNativeFixintAllow(options) => options.deserialize(data),
+        }
+    }
+}
+
+impl<T> OwnedDeserializer<T> for BincodeOptions
+where
+    T: Serialize + DeserializeOwned,
+{
+    fn deserialize_owned(&self, data: &[u8]) -> Result<T, Self::Error> {
         match self {
             BincodeOptions::UnlimitedLittleVarintReject(options) => options.deserialize(data),
             BincodeOptions::UnlimitedLittleVarintAllow(options) => options.deserialize(data),

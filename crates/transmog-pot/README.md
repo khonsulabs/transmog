@@ -9,12 +9,12 @@
 This crate provides a [`Format`][format] trait implementation using the [`Pot`][pot-type] type:
 
 ```rust
-use transmog::Format;
+use transmog::{Format, OwnedDeserializer};
 use transmog_pot::Pot;
 
 let pot = Pot::default();
 let serialized = pot.serialize(&42_u64).unwrap();
-let deserialized: u64 = pot.deserialize(&serialized).unwrap();
+let deserialized: u64 = pot.deserialize_owned(&serialized).unwrap();
 assert_eq!(deserialized, 42);
 ```
 

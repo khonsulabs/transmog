@@ -1,6 +1,6 @@
 [package]
 name = "transmog-async"
-version = "0.1.0-dev.1"
+version = "0.1.0-dev.2"
 edition = "2021"
 description = "Async stream support for Transmog"
 repository = "https://github.com/khonsulabs/transmog"
@@ -10,7 +10,7 @@ categories = ["encoding"]
 readme = "./README.md"
 
 [dependencies]
-transmog = { path = "../transmog", version = "0.1.0-dev.1" }
+transmog = { path = "../transmog", version = "0.1.0-dev.2" }
 futures-core = { version = "0.3" }
 futures-sink = { version = "0.3" }
 tokio = { version = "1.0", features = ["net"] }
@@ -22,5 +22,5 @@ thiserror = "1"
 anyhow = "1"
 futures = "0.3"
 tokio = { version = "1.0", features = ["full"] }
-transmog-bincode = { path = "../transmog-bincode", version = "0.1.0-dev.1" }
-transmog-pot = { path = "../transmog-pot", version = "0.1.0-dev.1" }
+transmog-bincode = { path = "../transmog-bincode", version = "0.1.0-dev.2" }
+transmog-pot = { path = "../transmog-pot", version = "0.1.0-dev.2" }

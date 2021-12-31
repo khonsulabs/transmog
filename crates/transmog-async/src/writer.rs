@@ -129,14 +129,14 @@ pub struct SyncDestination;
 #[doc(hidden)]
 pub trait TransmogWriterFor<T, F>
 where
-    F: Format<T>,
+    F: Format<'static, T>,
 {
     fn append(&mut self, item: &T) -> Result<(), F::Error>;
 }
 
 impl<W, T, F> TransmogWriterFor<T, F> for TransmogWriter<W, T, AsyncDestination, F>
 where
-    F: Format<T>,
+    F: Format<'static, T>,
 {
     fn append(&mut self, item: &T) -> Result<(), F::Error> {
         if let Some(serialized_length) = self.format.serialized_size(item)? {
@@ -164,7 +164,7 @@ fn usize_to_u64(value: usize) -> Result<u64, std::io::Error> {
 
 impl<W, T, F> TransmogWriterFor<T, F> for TransmogWriter<W, T, SyncDestination, F>
 where
-    F: Format<T>,
+    F: Format<'static, T>,
 {
     fn append(&mut self, item: &T) -> Result<(), F::Error> {
         self.format.serialize_into(item, &mut self.buffer)
@@ -173,7 +173,7 @@ where
 
 impl<W, T, D, F> Sink<T> for TransmogWriter<W, T, D, F>
 where
-    F: Format<T>,
+    F: Format<'static, T>,
     W: AsyncWrite + Unpin,
     Self: TransmogWriterFor<T, F>,
 {

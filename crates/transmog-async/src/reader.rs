@@ -9,7 +9,7 @@ use bytes::{Buf, BytesMut};
 use futures_core::{ready, Stream};
 use ordered_varint::Variable;
 use tokio::io::{AsyncRead, ReadBuf};
-use transmog::Format;
+use transmog::OwnedDeserializer;
 
 /// A wrapper around an asynchronous reader that produces an asynchronous stream
 /// of Transmog-decoded values.
@@ -82,7 +82,7 @@ impl<R, T, F> TransmogReader<R, T, F> {
 impl<R, T, F> Stream for TransmogReader<R, T, F>
 where
     R: AsyncRead + Unpin,
-    F: Format<T>,
+    F: OwnedDeserializer<T>,
 {
     type Item = Result<T, F::Error>;
     fn poll_next(mut self: Pin<&mut Self>, cx: &mut Context<'_>) -> Poll<Option<Self::Item>> {
@@ -106,7 +106,7 @@ where
                 if self.buffer.len() >= target_buffer_size {
                     let message = self
                         .format
-                        .deserialize(&self.buffer[header_len..target_buffer_size])
+                        .deserialize_owned(&self.buffer[header_len..target_buffer_size])
                         .unwrap();
                     self.buffer.advance(target_buffer_size);
                     break Poll::Ready(Some(Ok(message)));

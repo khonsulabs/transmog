@@ -19,7 +19,7 @@ use std::{
 };
 
 /// A serialization format.
-pub trait Format<T>: Send + Sync {
+pub trait Format<'a, T>: Send + Sync {
     /// The error type this format produces.
     type Error: From<std::io::Error> + Debug + Display;
 
@@ -43,9 +43,18 @@ pub trait Format<T>: Send + Sync {
 
     /// Serialize `value` into `writer`.
     fn serialize_into<W: Write>(&self, value: &T, writer: W) -> Result<(), Self::Error>;
+}
 
+/// A deserializer that borrows data when possible.
+pub trait BorrowedDeserializer<'a, T>: Format<'a, T> {
+    /// Deserialize `T` from `data`, borrowing when possible.
+    fn deserialize_borrowed(&self, data: &'a [u8]) -> Result<T, Self::Error>;
+}
+
+/// A deserializer that does not attempt to borrow data when deserializing.
+pub trait OwnedDeserializer<T>: Format<'static, T> {
     /// Deserialize `T` from `data`.
-    fn deserialize(&self, data: &[u8]) -> Result<T, Self::Error> {
+    fn deserialize_owned(&self, data: &[u8]) -> Result<T, Self::Error> {
         self.deserialize_from(data)
     }
 
@@ -64,17 +73,19 @@ mod tests {
     #[derive(Clone)]
     struct U64BEFormat;
 
-    impl Format<u64> for U64BEFormat {
+    impl<'a> Format<'a, u64> for U64BEFormat {
         type Error = std::io::Error;
-
-        fn serialized_size(&self, _value: &u64) -> Result<Option<usize>, Self::Error> {
-            Ok(Some(std::mem::size_of::<u64>()))
-        }
 
         fn serialize_into<W: Write>(&self, value: &u64, mut writer: W) -> Result<(), Self::Error> {
             writer.write_all(&value.to_be_bytes())
         }
 
+        fn serialized_size(&self, _value: &u64) -> Result<Option<usize>, Self::Error> {
+            Ok(Some(std::mem::size_of::<u64>()))
+        }
+    }
+
+    impl OwnedDeserializer<u64> for U64BEFormat {
         fn deserialize_from<R: Read>(&self, mut reader: R) -> Result<u64, Self::Error> {
             let mut bytes = [0_u8; 8];
             reader.read_exact(&mut bytes)?;

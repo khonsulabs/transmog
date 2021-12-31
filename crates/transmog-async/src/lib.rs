@@ -58,7 +58,7 @@ impl<TStream, TFormat> Builder<(), (), TStream, TFormat> {
     /// Sets `T` as the type for both sending and receiving.
     pub fn sends_and_receives<T>(self) -> Builder<T, T, TStream, TFormat>
     where
-        TFormat: Format<T>,
+        TFormat: Format<'static, T>,
     {
         Builder {
             stream: self.stream,
@@ -72,7 +72,7 @@ impl<TReads, TStream, TFormat> Builder<TReads, (), TStream, TFormat> {
     /// Sets `T` as the type of data that is written to this stream.
     pub fn sends<T>(self) -> Builder<TReads, T, TStream, TFormat>
     where
-        TFormat: Format<T>,
+        TFormat: Format<'static, T>,
     {
         Builder {
             stream: self.stream,
@@ -86,7 +86,7 @@ impl<TWrites, TStream, TFormat> Builder<(), TWrites, TStream, TFormat> {
     /// Sets `T` as the type of data that is read from this stream.
     pub fn receives<T>(self) -> Builder<T, TWrites, TStream, TFormat>
     where
-        TFormat: Format<T>,
+        TFormat: Format<'static, T>,
     {
         Builder {
             stream: self.stream,
@@ -319,7 +319,7 @@ where
         TReads,
         TFormat,
     >: Stream<Item = Result<TReads, TFormat::Error>>,
-    TFormat: Format<TWrites>,
+    TFormat: Format<'static, TWrites>,
 {
     type Item = Result<TReads, TFormat::Error>;
     fn poll_next(mut self: Pin<&mut Self>, cx: &mut Context<'_>) -> Poll<Option<Self::Item>> {
@@ -332,7 +332,7 @@ impl<TReads, TWrites, TStream, TDestination, TFormat> Sink<TWrites>
 where
     TStream: Unpin,
     TransmogWriter<TStream, TWrites, TDestination, TFormat>: Sink<TWrites, Error = TFormat::Error>,
-    TFormat: Format<TWrites>,
+    TFormat: Format<'static, TWrites>,
 {
     type Error = TFormat::Error;
 
@@ -356,6 +356,7 @@ where
 #[cfg(test)]
 mod tests {
     use futures::prelude::*;
+    use transmog::OwnedDeserializer;
     use transmog_bincode::Bincode;
     use transmog_pot::Pot;
 
@@ -363,7 +364,7 @@ mod tests {
 
     async fn it_works<
         T: std::fmt::Debug + Clone + PartialEq + Send,
-        TFormat: Format<T> + Clone + 'static,
+        TFormat: Format<'static, T> + OwnedDeserializer<T> + Clone + 'static,
     >(
         format: TFormat,
         values: &[T],

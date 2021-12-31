@@ -22,6 +22,7 @@ impl khonsu_tools::publish::Config for Config {
             String::from("crates/transmog"),
             String::from("crates/transmog-bincode"),
             String::from("crates/transmog-cbor"),
+            String::from("crates/transmog-json"),
             String::from("crates/transmog-pot"),
             String::from("crates/transmog-async"),
             String::from("crates/transmog-versions"),

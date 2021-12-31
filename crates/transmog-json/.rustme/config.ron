@@ -1,0 +1,26 @@
+Configuration(
+    files: {
+        "../README.md":  [
+            "header.md",
+            "json-docs.md",
+            "https://github.com/khonsulabs/.github/raw/main/snippets/readme-footer.md",
+        ],
+        "../src/.crate-docs.md":  (
+            for_docs: true,
+            sections: [
+                "json-docs.md",
+            ],
+        ),
+    },
+    glossaries: [
+        "https://github.com/khonsulabs/.github/raw/main/snippets/glossary.ron",
+        "../../../.rustme/glossary.ron",
+        {
+            "json-type": (
+                default: "https://khonsulabs.github.io/transmog/main/transmog_json/struct.Json.html",
+                release: "https://docs.rs/transmog-json/*/transmog_json/struct.Json.html",
+                for_docs: "crate::Json",
+            )
+        }
+    ],
+)

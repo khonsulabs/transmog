@@ -1,6 +1,6 @@
 [package]
 name = "transmog"
-version = "0.1.0-dev.1"
+version = "0.1.0-dev.2"
 edition = "2021"
 description = "A universal serialization ecosystem"
 repository = "https://github.com/khonsulabs/transmog"

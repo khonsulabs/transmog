@@ -1,6 +1,6 @@
 [package]
 name = "transmog-versions"
-version = "0.1.0-dev.1"
+version = "0.1.0-dev.2"
 edition = "2021"
 description = "Multi-version/Multi-format support for Transmog"
 repository = "https://github.com/khonsulabs/transmog"
@@ -12,6 +12,6 @@ readme = "./README.md"
 # See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
 
 [dependencies]
-transmog = { path = "../transmog", version = "0.1.0-dev.1" }
+transmog = { path = "../transmog", version = "0.1.0-dev.2" }
 ordered-varint = "0.1.0-dev.1"
 thiserror = "1"

@@ -24,8 +24,8 @@ This crate has been adapted from
 [`async-bincode`](https://github.com/jonhoo/async-bincode) to generically
 support the [`Format`][format] trait.
 
-
 [format]: https://khonsulabs.github.io/transmog/main/transmog/trait.Format.html
+
 ## Open-source Licenses
 
 This project, like all projects from [Khonsu Labs](https://khonsulabs.com/), are

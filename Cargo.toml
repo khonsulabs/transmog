@@ -3,3 +3,9 @@ members = ["crates/*", "examples/*", "xtask"]
 
 # [patch.crates-io]
 # pot = { path = "../pot/pot" }
+
+# [patch."https://github.com/khonsulabs/khonsu-tools.git"]
+# khonsu-tools = { path = "../khonsu-tools/khonsu-tools" }
+
+# [patch."https://github.com/khonsulabs/rustme.git"]
+# rustme = { path = "../rustme" }

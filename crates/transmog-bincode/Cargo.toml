@@ -1,6 +1,6 @@
 [package]
 name = "transmog-bincode"
-version = "0.1.0-dev.1"
+version = "0.1.0-dev.2"
 edition = "2021"
 description = "Bincode adaptor for Transmog"
 repository = "https://github.com/khonsulabs/transmog"
@@ -12,11 +12,11 @@ readme = "./README.md"
 # See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
 
 [dependencies]
-transmog = { path = "../transmog", version = "0.1.0-dev.1" }
+transmog = { path = "../transmog", version = "0.1.0-dev.2" }
 serde = "1.0.124"
 bincode = "1"
 
 [dev-dependencies]
-transmog = { path = "../transmog", version = "0.1.0-dev.1", features = [
+transmog = { path = "../transmog", version = "0.1.0-dev.2", features = [
     "test-util",
 ] }

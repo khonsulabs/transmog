@@ -41,6 +41,7 @@ assert_eq!(deserialized, 42);
 [transmog-async]: https://crates.io/crates/transmog-async
 [transmog-bincode]: https://crates.io/crates/transmog-bincode
 [transmog-cbor]: https://crates.io/crates/transmog-cbor
+[transmog-json]: https://crates.io/crates/transmog-json
 [transmog-pot]: https://crates.io/crates/transmog-pot
 [transmog-versions]: https://crates.io/crates/transmog-versions
 

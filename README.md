@@ -33,6 +33,8 @@ We accept pull requests for any moderately stable serialization API.
 - [`Bincode`](https://crates.io/crates/bincode) via [`transmog-bincode`][transmog-bincode]
 - CBOR via [`transmog-cbor`][transmog-cbor], powered by
   [`Ciborium`](https://crates.io/crates/ciborium).
+- JSON via [`transmog-json`][transmog-json], powered by
+  [`serde_json`](https://crates.io/crates/serde_json).
 - [`Pot`](https://crates.io/crates/pot) via [`transmog-pot`][transmog-pot]
 
 ## Utilities for migrating data structures
@@ -58,6 +60,7 @@ The [`transmog-async`][transmog-async] crate is a fork of
 [transmog-async]: https://crates.io/crates/transmog-async
 [transmog-bincode]: https://crates.io/crates/transmog-bincode
 [transmog-cbor]: https://crates.io/crates/transmog-cbor
+[transmog-json]: https://crates.io/crates/transmog-json
 [transmog-pot]: https://crates.io/crates/transmog-pot
 [transmog-versions]: https://crates.io/crates/transmog-versions
 

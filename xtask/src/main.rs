@@ -1,11 +1,10 @@
 use khonsu_tools::{
-    universal::{anyhow, DefaultConfig},
+    universal::{anyhow, clap::Parser, DefaultConfig},
     Commands,
 };
-use structopt::StructOpt;
 
 fn main() -> anyhow::Result<()> {
-    let command = Commands::from_args();
+    let command = Commands::parse();
     command.execute::<Config>()
 }
 
@@ -22,6 +21,7 @@ impl khonsu_tools::publish::Config for Config {
             String::from("crates/transmog"),
             String::from("crates/transmog-bincode"),
             String::from("crates/transmog-cbor"),
+            String::from("crates/transmog-json"),
             String::from("crates/transmog-pot"),
             String::from("crates/transmog-async"),
             String::from("crates/transmog-versions"),

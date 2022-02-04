@@ -21,5 +21,6 @@ assert_eq!(deserialized, 42);
 [transmog-async]: $transmog-async$
 [transmog-bincode]: $transmog-bincode$
 [transmog-cbor]: $transmog-cbor$
+[transmog-json]: $transmog-json$
 [transmog-pot]: $transmog-pot$
 [transmog-versions]: $transmog-versions$

@@ -6,4 +6,3 @@ publish = false
 
 [dependencies]
 khonsu-tools = { git = "https://github.com/khonsulabs/khonsu-tools.git", branch = "main" }
-structopt = "0.3"

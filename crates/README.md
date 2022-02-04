@@ -8,6 +8,8 @@
 - [`transmog-bincode`](./transmog-bincode): [`Bincode`](https://crates.io/crates/bincode) format support.
 - [`transmog-cbor`](./transmog-cbor): CBOR format support, powered by
   [`Ciborium`](https://crates.io/crates/ciborium).
+- [`transmog-json`](./transmog-json): JSON format support, powered by
+  [`serde_json`](https://crates.io/crates/serde_json).
 - [`transmog-pot`](./transmog-pot): [`Pot`](https://crates.io/crates/pot) format support.
 
 ## Utilities

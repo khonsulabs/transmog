@@ -1,11 +1,10 @@
 use khonsu_tools::{
-    universal::{anyhow, DefaultConfig},
+    universal::{anyhow, clap::Parser, DefaultConfig},
     Commands,
 };
-use structopt::StructOpt;
 
 fn main() -> anyhow::Result<()> {
-    let command = Commands::from_args();
+    let command = Commands::parse();
     command.execute::<Config>()
 }
 

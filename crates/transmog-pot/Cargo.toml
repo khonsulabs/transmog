@@ -1,6 +1,6 @@
 [package]
 name = "transmog-pot"
-version = "0.1.0-dev.2"
+version = "0.1.0"
 edition = "2021"
 description = "Pot adaptor for Transmog"
 repository = "https://github.com/khonsulabs/transmog"
@@ -12,11 +12,9 @@ readme = "./README.md"
 # See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
 
 [dependencies]
-pot = { version = "1.0.0-rc.3" }
-transmog = { path = "../transmog", version = "0.1.0-dev.2" }
-serde = "1"
+pot = "1.0.0"
+transmog = { path = "../transmog", version = "0.1.0" }
+serde = "1.0.136"
 
 [dev-dependencies]
-transmog = { path = "../transmog", version = "0.1.0-dev.2", features = [
-    "test-util",
-] }
+transmog = { path = "../transmog", version = "0.1.0", features = ["test-util"] }

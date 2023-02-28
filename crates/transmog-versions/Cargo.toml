@@ -1,6 +1,6 @@
 [package]
 name = "transmog-versions"
-version = "0.1.0"
+version = "0.1.1"
 edition = "2021"
 description = "Multi-version/Multi-format support for Transmog"
 repository = "https://github.com/khonsulabs/transmog"
@@ -13,5 +13,5 @@ readme = "./README.md"
 
 [dependencies]
 transmog = { path = "../transmog", version = "0.1.0" }
-ordered-varint = "1.0.0"
+ordered-varint = "2.0.0"
 thiserror = "1.0.30"

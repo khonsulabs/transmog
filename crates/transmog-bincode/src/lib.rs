@@ -129,7 +129,7 @@ impl Bincode {
     }
 }
 
-impl<'a> From<&Bincode> for BincodeOptions {
+impl From<&Bincode> for BincodeOptions {
     #[allow(clippy::too_many_lines)]
     fn from(settings: &Bincode) -> Self {
         match (

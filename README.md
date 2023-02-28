@@ -4,7 +4,7 @@ Universal data serialization utilities for Rust.
 
 ![Transmog forbids unsafe code](https://img.shields.io/badge/unsafe-forbid-success)
 [![crate version](https://img.shields.io/crates/v/transmog.svg)](https://crates.io/crates/transmog)
-[![Live Build Status](https://img.shields.io/github/workflow/status/khonsulabs/transmog/Tests/main)](https://github.com/khonsulabs/transmog/actions?query=workflow:Tests)
+[![Live Build Status](https://img.shields.io/github/actions/workflow/status/khonsulabs/transmog/rust.yml?branch=main)](https://github.com/khonsulabs/transmog/actions?query=workflow:Tests)
 [![HTML Coverage Report for `main` branch](https://khonsulabs.github.io/transmog/coverage/badge.svg)](https://khonsulabs.github.io/transmog/coverage/)
 [![Documentation for `main` branch](https://img.shields.io/badge/docs-main-informational)](https://khonsulabs.github.io/transmog/main/transmog/)
 

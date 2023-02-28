@@ -1,1 +1,1 @@
-initSidebarItems({"enum":[["Error","CBOR serialization and deserialization errors."]],"struct":[["Cbor","CBOR implementor of [`Format`]."]]});
+window.SIDEBAR_ITEMS = {"enum":[["Error","CBOR serialization and deserialization errors."]],"struct":[["Cbor","CBOR implementor of [`Format`]."]]};

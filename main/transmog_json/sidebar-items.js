@@ -1,1 +1,1 @@
-window.SIDEBAR_ITEMS = {"enum":[["Error","Errors from [`Json`]."]],"struct":[["Json","Json implementor of [`Format`]."]]};
+window.SIDEBAR_ITEMS = {"enum":["Error"],"struct":["Json"]};

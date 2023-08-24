@@ -1,1 +1,1 @@
-window.SIDEBAR_ITEMS = {"struct":[["Bincode","Bincode implementor of [`Format`] with default options."]]};
+window.SIDEBAR_ITEMS = {"struct":["Bincode"]};

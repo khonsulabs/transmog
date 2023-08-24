@@ -1,1 +1,1 @@
-window.SIDEBAR_ITEMS = {"struct":[["Pot","Pot implementor of [`Format`]."]]};
+window.SIDEBAR_ITEMS = {"struct":["Pot"]};
